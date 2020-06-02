@@ -1,0 +1,59 @@
+## Interface: 11304
+## Author: Pandeiros
+## Version: 1.0
+## SavedVariables: ArmaMinimapIcon, ArmaDB
+## SavedVariablesPerCharacter: ArmaCharacterDB
+## Dependencies:
+## OptionalDeps:
+## DefaultState: enabled
+## LoadOnDemand: 0
+
+## Title: Armamentarium
+## Notes: Find the best gear for your character.
+
+# ## Title-deDE: Armamentarium
+# ## Title-esES: Armamentarium
+# ## Title-esMX: Armamentarium
+# ## Title-frFR: Armamentarium
+# ## Title-itIT: Armamentarium
+# ## Title-koKR: Armamentarium
+# ## Title-ptBR: Armamentarium
+# ## Title-ruRU: Armamentarium
+# ## Title-zhCN: Armamentarium
+# ## Title-zhTW: Armamentarium
+# ## Notes-deDE: Find the best gear for your character.
+# ## Notes-esES: Find the best gear for your character.
+# ## Notes-esMX: Find the best gear for your character.
+# ## Notes-frFR: Find the best gear for your character.
+# ## Notes-itIT: Find the best gear for your character.
+# ## Notes-koKR: Find the best gear for your character.
+# ## Notes-ptBR: Find the best gear for your character.
+# ## Notes-ruRU: Find the best gear for your character.
+# ## Notes-zhCN: Find the best gear for your character.
+# ## Notes-zhTW: Find the best gear for your character.
+
+## X-Min-Interface: 11304
+## X-Credits:
+## X-Category: Bags & Inventory
+## X-License: GPL v3
+## X-Localizations: enUS #, deDE, frFR, esES, koKR, zhCN, zhTW, esMX, ptBR, ruRU, itIT
+# ## X-Curse-Project-ID: 123456
+# ## X-WoWI-ID: 12345
+
+embeds.xml
+
+Init.lua
+Config.lua
+
+locales/Locales.lua
+
+scripts/Styles.lua
+scripts/Logging.lua
+scripts/Misc.lua
+scripts/Data.lua
+scripts/Functions.lua
+scripts/Frames.lua
+scripts/Options.lua
+scripts/Events.lua
+
+Armamentarium.lua
