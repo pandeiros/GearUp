@@ -49,6 +49,7 @@ locales/Locales.lua
 
 scripts/Styles.lua
 scripts/Logging.lua
+scripts/Items.lua
 scripts/Misc.lua
 scripts/Data.lua
 scripts/Functions.lua

@@ -3,7 +3,7 @@
 local Arma = _G.Arma;
 
 -- Version
-ADDON_VERSION = "0.1.0"
+ADDON_VERSION = "0.1.1"
 
 -- Dev mode
 ARMA_DEV_MODE_ENABLED = true;

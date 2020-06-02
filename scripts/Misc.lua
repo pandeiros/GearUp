@@ -1,9 +1,13 @@
-
+-- #TODO Copyright here
 
 local Arma = _G.Arma;
 local Misc = Arma.Misc;
 local Style = Arma.Style;
 local Colors = Style.Colors;
+
+----------------------------------------------------------
+-- Items & Inventory functions
+----------------------------------------------------------
 
 local COIN_TEXTURES = {
     "|TInterface\\Moneyframe\\UI-GoldIcon:0:0:4:0|t",
@@ -47,6 +51,32 @@ function Misc:GetItemVendorPrice(itemID)
     local itemSellPrice = 0;
     local _, _, _, _, _, _, _, _, _, _, itemSellPrice = GetItemInfo(itemID);
     return itemSellPrice;
+end
+
+function Misc:GetRarityName(rarityLevel)
+	if (rarityLevel == 0) then return "Poor"; end
+	if (rarityLevel == 1) then return "Common"; end
+	if (rarityLevel == 2) then return "Uncommon"; end
+	if (rarityLevel == 3) then return "Rare"; end
+	if (rarityLevel == 4) then return "Epic"; end
+	if (rarityLevel == 5) then return "Legendary"; end
+	if (rarityLevel == 6) then return "Artifact"; end
+	if (rarityLevel == 7) then return "Heirloom"; end
+
+	return "Unknown";
+end
+
+function Misc:GetRarityLevel(rarityName)
+	if (rarityName == "Poor") then return 0; end
+	if (rarityName == "Common") then return 1; end
+	if (rarityName == "Uncommon") then return 2; end
+	if (rarityName == "Rare") then return 3; end
+	if (rarityName == "Epic") then return 4; end
+	if (rarityName == "Legendary") then return 5; end
+	if (rarityName == "Artifact") then return 6; end
+	if (rarityName == "Heirloom") then return 7; end
+
+	return -1;
 end
 
 ----------------------------------------------------------
