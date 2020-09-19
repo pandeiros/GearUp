@@ -3,14 +3,14 @@
 local Arma = _G.Arma;
 
 local Items = {};
-Arma.Items = Items;
+Arma.Data.Items = Items;
 
 ----------------------------------------------------------
 -- Equipment properties
 ----------------------------------------------------------
 
 local ITEM_KEYWORDS = {
-    "Soulbound", "Unique", "Requires", "Level", "Binds when",
+    "Soulbound", "Unique", "Requires", "Level", "Binds when", "BoP", "BoE"
 }
 
 local WEAPON_KEYWORDS = {

@@ -6,6 +6,29 @@ local Style = Arma.Style;
 local Colors = Style.Colors;
 
 ----------------------------------------------------------
+-- Classes
+----------------------------------------------------------
+
+local CLASSES_ID = {
+	[0]		= CLASS_DEATHKNIGHT,
+	[1]		= CLASS_DEMONHUNTER,
+	[2]		= CLASS_DRUID,
+	[3]		= CLASS_HUNTER,
+	[4]		= CLASS_MAGE,
+	[5]		= CLASS_MONK,
+	[6]		= CLASS_PALADIN,
+	[7]		= CLASS_PRIEST,
+	[8]		= CLASS_ROGUE,
+	[9]		= CLASS_SHAMAN,
+	[10]	= CLASS_WARLOCK,
+	[11]	= CLASS_WARRIOR,
+}
+
+function Misc:GetClassNameByID(classID)
+	return CLASSES_ID[classID];
+end
+
+----------------------------------------------------------
 -- Items & Inventory functions
 ----------------------------------------------------------
 

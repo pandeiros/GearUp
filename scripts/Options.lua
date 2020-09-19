@@ -75,7 +75,7 @@ Options.OptionsTable = OptionsTable;
 
 -- Development mode
 function Arma:GetDevModeEnabled()
-    return (ARMA_DEV_MODE_ENABLED and not self:GetDevModeToggleHidden());
+    return (ARMA_DEV_MODE_FORCED or ARMA_DEV_MODE_ENABLED and not self:GetDevModeToggleHidden());
 end
 
 function Arma:GetDevModeToggleHidden()

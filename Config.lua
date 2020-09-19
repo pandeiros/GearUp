@@ -6,14 +6,14 @@ local Arma = _G.Arma;
 ADDON_VERSION = "0.1.1"
 
 -- Dev mode
-ARMA_DEV_MODE_ENABLED = true;
+ARMA_DEV_MODE_ENABLED = true;   -- whether dev mode is enabled AT ALL
+ARMA_DEV_MODE_FORCED = true;    -- whether we force dev mode, even if not toggled via console (requires ARMA_DEV_MODE_ENABLED to true)
 
 -- Commonly used variables
 ARMA_DISPLAY_NAME = "Armamentarium"
 ARMA_ADDON_NAME = "Arma";
 ARMA_DB_NAME = "ArmaDB";
 ARMA_DB_CHAR_NAME = "ArmaCharacterDB";
-ARMA_CURRENT_PHASE = 4;
 
 -- Events stubs
 function Arma:PLAYER_LOGIN()               self:PlayerLogin();         end

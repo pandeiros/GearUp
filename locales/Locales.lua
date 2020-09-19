@@ -1,24 +1,25 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local L = AceLocale:GetLocale("Arma");
 
-local GeneratedLocals = {
-    -- ----------------------------------------------------------
-    -- -- Professions
-    -- ----------------------------------------------------------
-    -- ["Professions"]     = _G["TRADE_SKILLS"],
-    -- ["Alchemy"]         = GetSpellInfo(2259),
-    -- ["Blacksmithing"]   = GetSpellInfo(2018),
-    -- ["Cooking"]         = GetSpellInfo(2550),
-    -- ["Enchanting"]      = GetSpellInfo(7411),
-    -- ["Engineering"]     = GetSpellInfo(4036),
-    -- ["First Aid"]       = GetSpellInfo(3273),
-    -- ["Fishing"]         = GetSpellInfo(7732),
-    -- ["Herbalism"]       = GetSpellInfo(2366),
-    -- ["Mining"]          = GetSpellInfo(2575),
-    -- ["Leatherworking"]  = GetSpellInfo(2108),
-    -- ["Skinning"]        = GetSpellInfo(8618),
-	-- ["Tailoring"]       = GetSpellInfo(3908),
-}
+----------------------------------------------------------
+-- Generated locales
+----------------------------------------------------------
 
-Arma.Locale.GeneratedLocals = GeneratedLocals;
+if (L) then
+
+L["Professions"]     = _G["TRADE_SKILLS"];
+L["Alchemy"]         = GetSpellInfo(2259);
+L["Blacksmithing"]   = GetSpellInfo(2018);
+L["Cooking"]         = GetSpellInfo(2550);
+L["Enchanting"]      = GetSpellInfo(7411);
+L["Engineering"]     = GetSpellInfo(4036);
+L["First Aid"]       = GetSpellInfo(3273);
+L["Fishing"]         = GetSpellInfo(7732);
+L["Herbalism"]       = GetSpellInfo(2366);
+L["Mining"]          = GetSpellInfo(2575);
+L["Leatherworking"]  = GetSpellInfo(2108);
+L["Skinning"]        = GetSpellInfo(8618);
+L["Tailoring"]       = GetSpellInfo(3908);
+
+end

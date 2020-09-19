@@ -26,6 +26,20 @@ local COLOR_SHADES = {
 -- Color groups (from lighest to darkest)
 local COLOR_DATA = {
     ["Rarity"]      = {"9D9D9D", "FFFFFF", "1EFF00", "0070DD", "A335EE", "FF8000", "E6CC80", "00CCFF"},
+    ["Class"]       = {
+        [CLASS_DEATHKNIGHT]   = "C41E3A",
+        [CLASS_DEMONHUNTER]   = "A330C9",
+        [CLASS_DRUID]         = "FF7C0A",
+        [CLASS_HUNTER]        = "AAD372",
+        [CLASS_MAGE]          = "3FC6EA",
+        [CLASS_MONK]          = "00FF96",
+        [CLASS_PALADIN]       = "F48CBA",
+        [CLASS_PRIEST]        = "FFFFFF",
+        [CLASS_ROGUE]         = "FFF468",
+        [CLASS_SHAMAN]        = "0070DE",
+        [CLASS_WARLOCK]       = "8787ED",
+        [CLASS_WARRIOR]       = "C69B6D",
+    },   
 }
 
 COLOR_BLACK     = "000000";
@@ -50,7 +64,11 @@ local DEFAULT_STYLE = {
     primaryFontColor        = COLOR_SHADES["Gray"][16],
     secondaryFontColor      = COLOR_SHADES["Gray"][15],
     backgroundColor         = COLOR_SHADES["Gray"][3],
-    loggingColor            = COLOR_SHADES["Gray"][13],
+
+    verboseColor            = COLOR_SHADES["Gray"][10],
+    logColor                = COLOR_WHITE,
+    warningColor            = COLOR_YELLOW,
+    errorColor              = COLOR_RED,
 }
 
 -- Operation quality.
@@ -82,6 +100,13 @@ function Style:GetOperationQualityColor(opQuality)
     return OP_QUALITY_COLORS[opQuality];
 end
 
+function Style:GetClassColor(class)
+    if (COLOR_DATA["Class"][class]) then
+        return COLOR_DATA["Class"][class];
+    end
+
+    return "FFFFFF";
+end
 ----------------------------------------------------------
 -- Color functions
 ----------------------------------------------------------

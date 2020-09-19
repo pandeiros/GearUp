@@ -1,4 +1,4 @@
-## Interface: 11304
+## Interface: 11305
 ## Author: Pandeiros
 ## Version: 1.0
 ## SavedVariables: ArmaMinimapIcon, ArmaDB
@@ -9,7 +9,7 @@
 ## LoadOnDemand: 0
 
 ## Title: Armamentarium
-## Notes: Find the best gear for your character.
+## Notes: Item search engine and gear ranking addon.
 
 # ## Title-deDE: Armamentarium
 # ## Title-esES: Armamentarium
@@ -21,16 +21,16 @@
 # ## Title-ruRU: Armamentarium
 # ## Title-zhCN: Armamentarium
 # ## Title-zhTW: Armamentarium
-# ## Notes-deDE: Find the best gear for your character.
-# ## Notes-esES: Find the best gear for your character.
-# ## Notes-esMX: Find the best gear for your character.
-# ## Notes-frFR: Find the best gear for your character.
-# ## Notes-itIT: Find the best gear for your character.
-# ## Notes-koKR: Find the best gear for your character.
-# ## Notes-ptBR: Find the best gear for your character.
-# ## Notes-ruRU: Find the best gear for your character.
-# ## Notes-zhCN: Find the best gear for your character.
-# ## Notes-zhTW: Find the best gear for your character.
+# ## Notes-deDE: Item search engine and gear ranking addon.
+# ## Notes-esES: Item search engine and gear ranking addon.
+# ## Notes-esMX: Item search engine and gear ranking addon.
+# ## Notes-frFR: Item search engine and gear ranking addon.
+# ## Notes-itIT: Item search engine and gear ranking addon.
+# ## Notes-koKR: Item search engine and gear ranking addon.
+# ## Notes-ptBR: Item search engine and gear ranking addon.
+# ## Notes-ruRU: Item search engine and gear ranking addon.
+# ## Notes-zhCN: Item search engine and gear ranking addon.
+# ## Notes-zhTW: Item search engine and gear ranking addon.
 
 ## X-Min-Interface: 11304
 ## X-Credits:
@@ -45,13 +45,21 @@ embeds.xml
 Init.lua
 Config.lua
 
+locales/Armamentarium-enUS.lua
+locales/Armamentarium-esES.lua
 locales/Locales.lua
+locales/GlobalStrings.lua
+
+data/Phases.lua
+data/Items.lua
 
 scripts/Styles.lua
 scripts/Logging.lua
-scripts/Items.lua
 scripts/Misc.lua
+
 scripts/Data.lua
+scripts/Data_Scanning.lua
+
 scripts/Functions.lua
 scripts/Frames.lua
 scripts/Options.lua
