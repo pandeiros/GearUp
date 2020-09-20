@@ -25,6 +25,11 @@ function Arma_MainFrame:GetName()
 end
 
 function Arma_MainFrame:Draw()
+    self.timeSinceOpened = 0;
+    self.timeSinceLastUpdate = 0;
+    self.updateInterval = 0.005;  -- 0.0167;
+    self.count = 0;
+
     self:SetTitle(ARMA_ADDON_NAME);
     self:SetStatusText("");
     self:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
@@ -78,6 +83,30 @@ function Arma_MainFrame:DrawOtherTab(container)
     button:SetWidth(200);
     container:AddChild(button);
 end
+
+function Arma_MainFrame:OnUpdate(timeElapsed)
+    self.timeSinceLastUpdate = self.timeSinceLastUpdate + timeElapsed;
+    
+    if (math.floor(self.timeSinceOpened + timeElapsed) > math.floor(self.timeSinceOpened)) then
+        Logger:Verb(self.count);
+        self.count = 0;
+    end
+    self.timeSinceOpened = self.timeSinceOpened + timeElapsed;
+    
+    local delta = timeElapsed / 10;
+
+    while (self.timeSinceLastUpdate > delta) do
+        self.count = self.count + 1;
+
+      --
+      -- Insert your OnUpdate code here
+      --
+  
+      self.timeSinceLastUpdate = self.timeSinceLastUpdate - delta;
+    end
+end
+
+Arma_MainFrame.frame:SetScript("OnUpdate", function(self, timeElapsed) Arma_MainFrame:OnUpdate(timeElapsed) end);
 
 ----------------------------------------------------------
 

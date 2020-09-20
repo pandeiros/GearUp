@@ -2,11 +2,13 @@
 
 local Arma = _G.Arma
 local Auctions = Arma.Data.Auctions;
+local Logger = Arma.Logger;
 
 function Arma:PlayerLogin()
 	self:Initialize();
 	self:PrintWelcomeMessage();
 end
+
 ---------------------------------------------------------
 
 function Arma.ToolTipHook(tooltip)

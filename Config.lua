@@ -16,7 +16,7 @@ ARMA_DB_NAME = "ArmaDB";
 ARMA_DB_CHAR_NAME = "ArmaCharacterDB";
 
 -- Events stubs
-function Arma:PLAYER_LOGIN()               self:PlayerLogin();         end
+function Arma:PLAYER_LOGIN()                self:PlayerLogin();         end
 -- function Arma:AUCTION_HOUSE_SHOW()         self:AuctionHouseShow();      end
 -- function Arma:AUCTION_HOUSE_CLOSED()       self:AuctionHouseClosed();      end
 -- function Arma:AUCTION_ITEM_LIST_UPDATE()   self:AuctionItemListUpdate();      end
