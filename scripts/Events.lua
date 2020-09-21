@@ -9,6 +9,13 @@ function Arma:PlayerLogin()
 	self:PrintWelcomeMessage();
 end
 
+function Arma:GetItemInfoReceived(itemID, success)
+	if not success then success = "" end;
+	if itemID ~= nil then
+		print(itemID .. ": " .. success);
+	end
+end
+
 ---------------------------------------------------------
 
 function Arma.ToolTipHook(tooltip)

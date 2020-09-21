@@ -5,6 +5,7 @@ local Style = Arma.Style;
 local Colors = Style.Colors;
 local Data = Arma.Data;
 local Logger = Arma.Logger;
+local Async = Arma.Async;
 
 local Frames = {};
 local Tooltip = {};
@@ -27,7 +28,8 @@ end
 function Arma_MainFrame:Draw()
     self.timeSinceOpened = 0;
     self.timeSinceLastUpdate = 0;
-    self.updateInterval = 0.005;  -- 0.0167;
+    self.updateInterval = 0.1;
+    -- self.updateInterval = 0.0167;
     self.count = 0;
 
     self:SetTitle(ARMA_ADDON_NAME);
@@ -84,31 +86,59 @@ function Arma_MainFrame:DrawOtherTab(container)
     container:AddChild(button);
 end
 
+function Arma_MainFrame:Tick(deltaTime)
+end
+
 function Arma_MainFrame:OnUpdate(timeElapsed)
-    self.timeSinceLastUpdate = self.timeSinceLastUpdate + timeElapsed;
-    
+end
+
+-- Arma_MainFrame.frame:SetScript("OnUpdate", function(self, timeElapsed) Arma_MainFrame:OnUpdate(timeElapsed) end);
+
+local UpdateFrame = CreateFrame("Frame");
+UpdateFrame:SetScript("OnUpdate", function(self, timeElapsed)
+    Frames:OnUpdate(timeElapsed);
+end)
+
+----------------------------------------------------------
+
+function Frames:Initialize()
+    self.timeSinceOpened = 0;
+    self.timeSinceLastUpdate = 0;
+    self.updateInterval = 0.1;
+    -- self.updateInterval = 0.0167;
+    self.count = 0;
+end
+
+Frames:Initialize();
+
+function Frames:Tick(deltaTime)
+    -- Data:ScanItems();
+    -- local itemDB = Arma.db.global.itemDB;
+    -- Logger:Verb(itemDB.processedIDs .. " -- " .. itemDB.deprecatedIDs .. " -- " .. #itemDB.invalidIDs);
+end
+
+function Frames:OnUpdate(timeElapsed)
     if (math.floor(self.timeSinceOpened + timeElapsed) > math.floor(self.timeSinceOpened)) then
-        Logger:Verb(self.count);
+        -- Logger:Verb(self.count);
         self.count = 0;
     end
     self.timeSinceOpened = self.timeSinceOpened + timeElapsed;
+    self.timeSinceLastUpdate = self.timeSinceLastUpdate + timeElapsed;
     
-    local delta = timeElapsed / 10;
-
-    while (self.timeSinceLastUpdate > delta) do
+    -- Code running at max 60fps
+    local deltaTime = math.max(timeElapsed, self.updateInterval);
+    while (self.timeSinceLastUpdate > deltaTime) do
         self.count = self.count + 1;
+        self:Tick(deltaTime);  
+        self.timeSinceLastUpdate = self.timeSinceLastUpdate - deltaTime;
+    end
 
-      --
-      -- Insert your OnUpdate code here
-      --
-  
-      self.timeSinceLastUpdate = self.timeSinceLastUpdate - delta;
+    -- Task scheduling
+    for _ = 1,10 do
+        Async:ScheduleTask();
+        Data:ScanItems();
     end
 end
-
-Arma_MainFrame.frame:SetScript("OnUpdate", function(self, timeElapsed) Arma_MainFrame:OnUpdate(timeElapsed) end);
-
-----------------------------------------------------------
 
 function Frames:OpenMainFrame()
     self.MainFrame = AceGUI:Create("Frame");

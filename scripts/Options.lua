@@ -62,10 +62,27 @@ local OptionsTable = {
 
         scan = {
             guiHidden = true,
+            type = "toggle",
+            name = "Enable/Disable Item Scan",
+            desc = "Enable/Disble item scanning and parsing",
+            set = "SetScanEnabled",
+            get = "GetScanEnabled",
+        },
+
+        dbreset = {
+            guiHidden = true,
             type = "execute",
-            name = "Item Scan",
-            desc = "Scan item dabasase",
-            func = "ScanCommand",
+            name = "Database reset",
+            desc = "Erase item databse",
+            func = "DatabaseReset",
+        },
+
+        stats = {
+            guiHidden = true,
+            type = "execute",
+            name = "DB Statistics",
+            desc = "Print database stats",
+            func = "DatabaseStats",
         }
     },
 }
@@ -131,6 +148,21 @@ function Arma:TestCommand(info)
 end
 
 -- Scan
-function Arma:ScanCommand(info)
-    Data:ScanItems();
+function Arma:SetScanEnabled(info, val)
+    Data:SetScanEnabled(val);
+    Logger:Printf("%s %s.", "Item scan", IFTE(val, "enabled", "disabled"));
+end
+
+function Arma:GetScanEnabled(info)
+    return Data.IsScanEnabled();
+end
+
+-- Reset database
+function Arma:DatabaseReset(info)
+    Data:DatabaseReset();
+end
+
+-- Reset database
+function Arma:DatabaseStats(info)
+    Data:PrintDatabaseStats();
 end

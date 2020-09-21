@@ -27,6 +27,7 @@ function Arma:Initialize()
         self.db = AceDB:New("ArmaDB", ARMA_DB_DEFAULTS, true);
         self.devmode = false;
 
+        Data:Initialize();
         Data.Options.OptionsTable.args.profiles = AceDBOptions:GetOptionsTable(self.db)
     end
 
