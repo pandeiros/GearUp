@@ -6,6 +6,7 @@ local Colors = Style.Colors;
 local Data = Arma.Data;
 local Logger = Arma.Logger;
 local Async = Arma.Async;
+local Misc = Arma.Misc;
 
 local Frames = {};
 local Tooltip = {};
@@ -166,54 +167,59 @@ end
 
 -----------------------------------------------------------
 
--- function Tooltip:AddItemInfo(tooltip)
---     local style = Arma.db.profile.style;
+function Tooltip:AddItemInfo(tooltip)
+    local style = Arma.db.profile.style;
     
---     local name, link = tooltip:GetItem();
---     local itemID = Data:GetItemIDFromLink(link);
---     local itemData = Data:PrepareTooltipData(itemID);
+    local name, link = tooltip:GetItem();
+    local itemID = Misc:GetItemIDFromLink(link);
 
---     -- self:PrintItemData(itemData, 0);
+    if (link or itemID) then
+        -- Data:ScanItem(itemID, link);
+        return;
+    end
+    -- local itemData = Data:PrepareTooltipData(itemID);
 
---     local vendorPrice = Data:GetItemVendorPrice(itemID);
+    -- self:PrintItemData(itemData, 0);
 
---     local bShouldShowInfo = (vendorPrice > 0);
---     if (bShouldShowInfo) then
---         tooltip:AddLine(" ", Colors:HEXToRGB(style.mainColor));
---         tooltip:AddLine(ARMA_ADDON_NAME, Colors:HEXToRGB(style.mainColor));
---         if (vendorPrice > 0) then
---             -- SetTooltipMoney(tooltip, vendorPrice, "STATIC", Colors:GetColorStr(style.vendorColor, "|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:"), "");
---             --tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Data:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.vendorColor));
---         end
---         -- TEST
---         -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_01:0|t |TInterface\\Icons\\INV_Misc_Coin_02:16|t |TInterface\\Icons\\INV_Misc_Coin_03:16|t ", Colors:HEXToRGB(style.mainColor));
---         -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_04:16|t |TInterface\\Icons\\INV_Misc_Coin_05:16|t |TInterface\\Icons\\INV_Misc_Coin_06:16|t ", Colors:HEXToRGB(style.mainColor));
---         -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_07:16|t |TInterface\\Icons\\INV_Misc_Coin_08:16|t |TInterface\\Icons\\INV_Misc_Coin_09:16|t ", Colors:HEXToRGB(style.mainColor));
---         -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_10:16|t |TInterface\\Icons\\INV_Misc_Coin_11:16|t |TInterface\\Icons\\INV_Misc_Coin_12:16|t ", Colors:HEXToRGB(style.mainColor));
---         -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_13:16|t |TInterface\\Icons\\INV_Misc_Coin_14:16|t |TInterface\\Icons\\INV_Misc_Coin_15:16|t ", Colors:HEXToRGB(style.mainColor));
+    local vendorPrice = Misc:GetItemVendorPrice(itemID);
 
---         -- tooltip:AddLine(Professions:GetProfessionIcon(0) .. Professions:GetProfessionIcon(1) .. Professions:GetProfessionIcon(2) .. Professions:GetProfessionIcon(3), Colors:HEXToRGB(COLOR_WHITE));
---         -- tooltip:AddLine(Professions:GetProfessionIcon(4) .. Professions:GetProfessionIcon(5) .. Professions:GetProfessionIcon(6) .. Professions:GetProfessionIcon(7), Colors:HEXToRGB(COLOR_WHITE));
---         -- tooltip:AddLine(Professions:GetProfessionIcon(8) .. Professions:GetProfessionIcon(9) .. Professions:GetProfessionIcon(10) .. Professions:GetProfessionIcon(11), Colors:HEXToRGB(COLOR_WHITE));
+    local bShouldShowInfo = (vendorPrice > 0);
+    if (bShouldShowInfo) then
+        tooltip:AddLine(" ", Colors:HEXToRGB(style.primaryAccentColor));
+        tooltip:AddLine(ARMA_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
+        if (vendorPrice > 0) then
+            -- SetTooltipMoney(tooltip, vendorPrice, "STATIC", Colors:GetColorStr(style.vendorColor, "|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:"), "");
+            --tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Data:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.vendorColor));
+        end
+        -- TEST
+        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_01:0|t |TInterface\\Icons\\INV_Misc_Coin_02:16|t |TInterface\\Icons\\INV_Misc_Coin_03:16|t ", Colors:HEXToRGB(style.mainColor));
+        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_04:16|t |TInterface\\Icons\\INV_Misc_Coin_05:16|t |TInterface\\Icons\\INV_Misc_Coin_06:16|t ", Colors:HEXToRGB(style.mainColor));
+        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_07:16|t |TInterface\\Icons\\INV_Misc_Coin_08:16|t |TInterface\\Icons\\INV_Misc_Coin_09:16|t ", Colors:HEXToRGB(style.mainColor));
+        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_10:16|t |TInterface\\Icons\\INV_Misc_Coin_11:16|t |TInterface\\Icons\\INV_Misc_Coin_12:16|t ", Colors:HEXToRGB(style.mainColor));
+        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_13:16|t |TInterface\\Icons\\INV_Misc_Coin_14:16|t |TInterface\\Icons\\INV_Misc_Coin_15:16|t ", Colors:HEXToRGB(style.mainColor));
 
---         -- VENDOR
---         tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Data:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.vendorColor));
---         -- tooltip:AddLine("    Full stack:  " .. Data:GetMoneyValueWithTextures(vendorPrice * 20) .. " (20)", Colors:HEXToRGB(style.vendorColor));
+        -- tooltip:AddLine(Professions:GetProfessionIcon(0) .. Professions:GetProfessionIcon(1) .. Professions:GetProfessionIcon(2) .. Professions:GetProfessionIcon(3), Colors:HEXToRGB(COLOR_WHITE));
+        -- tooltip:AddLine(Professions:GetProfessionIcon(4) .. Professions:GetProfessionIcon(5) .. Professions:GetProfessionIcon(6) .. Professions:GetProfessionIcon(7), Colors:HEXToRGB(COLOR_WHITE));
+        -- tooltip:AddLine(Professions:GetProfessionIcon(8) .. Professions:GetProfessionIcon(9) .. Professions:GetProfessionIcon(10) .. Professions:GetProfessionIcon(11), Colors:HEXToRGB(COLOR_WHITE));
 
---         -- AH
---         tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tAuction for:  " .. Data:GetMoneyValueWithTextures(21) .. Colors:GetColorStr(Style:GetOperationQualityColor(3), " (+300%)"), Colors:HEXToRGB(style.auctionColor));
---         -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(20) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(1), Colors:HEXToRGB(style.auctionColor));
---         -- tooltip:AddLine("    Min Buyout:  " .. Data:GetMoneyValueWithTextures(22) .. "  Items:  ".. Colors:GetColorStr(COLOR_WHITE, "47") .. "  Auctions:  " .. Colors:GetColorStr(COLOR_WHITE, "26"), Colors:HEXToRGB(style.auctionColor));
+        -- VENDOR
+        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Misc:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.primaryAccentColor));
+        -- tooltip:AddLine("    Full stack:  " .. Data:GetMoneyValueWithTextures(vendorPrice * 20) .. " (20)", Colors:HEXToRGB(style.vendorColor));
 
---         -- CRAFT
---         tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tCraft:  " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Protection Potion") .. " and Auction for:  " .. Data:GetMoneyValueWithTextures(250) .. Colors:GetColorStr(Style:GetOperationQualityColor(4), " (+500%)"), Colors:HEXToRGB(style.craftColor));
---         -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(100) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(12), Colors:HEXToRGB(style.craftColor));
---         -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(30) .. " per " .. Colors:GetColorStr(Style:GetRarityColor(1), "Firefin Snapper"), Colors:HEXToRGB(style.craftColor));
---         -- tooltip:AddLine("    Requires:  " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. ", " .. Colors:GetColorStr(Style:GetRarityColor(1), " Small Flame Sac").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
---         -- tooltip:AddLine("        " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. " requires: " .. Colors:GetColorStr(Style:GetRarityColor(1), " Firefin Snapper [2]").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
---         -- END TEST    
---     end
--- end
+        -- AH
+        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tAuction for:  " .. Misc:GetMoneyValueWithTextures(21) .. Colors:GetColorStr(Style:GetOperationQualityColor(3), " (+300%)"), Colors:HEXToRGB(style.secondaryAccentColor));
+        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(20) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(1), Colors:HEXToRGB(style.auctionColor));
+        -- tooltip:AddLine("    Min Buyout:  " .. Data:GetMoneyValueWithTextures(22) .. "  Items:  ".. Colors:GetColorStr(COLOR_WHITE, "47") .. "  Auctions:  " .. Colors:GetColorStr(COLOR_WHITE, "26"), Colors:HEXToRGB(style.auctionColor));
+
+        -- CRAFT
+        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tCraft:  " .. "Alchemy" .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Protection Potion") .. " and Auction for:  " .. Misc:GetMoneyValueWithTextures(250) .. Colors:GetColorStr(Style:GetOperationQualityColor(4), " (+500%)"), Colors:HEXToRGB(style.primaryAccentColor));
+        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(100) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(12), Colors:HEXToRGB(style.craftColor));
+        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(30) .. " per " .. Colors:GetColorStr(Style:GetRarityColor(1), "Firefin Snapper"), Colors:HEXToRGB(style.craftColor));
+        -- tooltip:AddLine("    Requires:  " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. ", " .. Colors:GetColorStr(Style:GetRarityColor(1), " Small Flame Sac").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
+        -- tooltip:AddLine("        " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. " requires: " .. Colors:GetColorStr(Style:GetRarityColor(1), " Firefin Snapper [2]").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
+        -- END TEST    
+    end
+end
 
 -- function Tooltip:PrintItemData(itemData, indent)
 --     if (not itemData.itemID) then

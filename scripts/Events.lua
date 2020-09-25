@@ -19,7 +19,7 @@ end
 ---------------------------------------------------------
 
 function Arma.ToolTipHook(tooltip)
-	-- Arma.Frames.Tooltip:AddItemInfo(tooltip);
+	Arma.Frames.Tooltip:AddItemInfo(tooltip);
 end
 
 GameTooltip:HookScript("OnTooltipSetItem", Arma.ToolTipHook);

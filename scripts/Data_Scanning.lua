@@ -107,7 +107,7 @@ end
 function Data:GetItemIDToScan()
     local itemDB = Arma.db.global.itemDB;
 
-    if (itemDB.parsedIDCount + itemDB.deprecatedIDCount == MAX_ITEM_COUNT) then
+    if (Length(itemDB.idMap) + Length(itemDB.deprecatedIDs) == MAX_ITEM_COUNT) then
         return false, 0;
     end
 
@@ -128,38 +128,48 @@ function Data:ScanItems()
     
     local result, itemID = self:GetItemIDToScan();
     if (result) then
-        itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
-            itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemID);
-
-        if (itemName ~= nil) then
-            if (not Data:ValidateItem(itemName)) then
-                itemDB.deprecatedIDs[itemID] = true;
-                itemDB.deprecatedIDCount = itemDB.deprecatedIDCount + 1;
-            else
-                self:AddItem(itemID, itemName, itemLink, itemRarity, itemType, itemSubtype);
-            end
-        else
-            if (not itemDB.invalidIDs[itemID]) then
-                itemDB.invalidIDs[itemID] = true;
-                itemDB.invalidIDCount = itemDB.invalidIDCount + 1;
-            end
-        end
+        self:ScanItem(itemID);
     else
         Logger:Print("End of scan.");
         self:SetScanEnabled(false);
     end    
 end
 
+function Data:ScanItem(itemID, itemLink)
+    if (itemID == nil or tonumber(itemID) <= 0) then
+        return;
+    end
+
+    if (Data:WasScanned(itemID)) then
+        return;
+    end
+
+    local itemDB = Arma.db.global.itemDB;
+
+    local itemLinkOrID = itemID or itemLink;
+    itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
+        itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemLinkOrID);
+
+    if (itemName ~= nil) then
+        if (not Data:ValidateItem(itemName)) then
+            itemDB.deprecatedIDs[itemID] = true;
+        else
+            self:AddItem(itemID, itemName, itemLink, itemRarity, itemType, itemSubtype);
+        end
+    else
+        if (not itemDB.invalidIDs[itemID]) then
+            itemDB.invalidIDs[itemID] = true;
+        end
+    end
+end
+
 function Data:PrintDatabaseStats()
     local itemDB = Arma.db.global.itemDB;
 
-    -- itemDB.invalidIDCount = 0;
-    -- itemDB.invalidIDs = {};
-
-    Logger:Printf("- Found %d valid items", itemDB.parsedIDCount);
-    Logger:Printf("- Found %d deprecated/old/test items", itemDB.deprecatedIDCount);
-    Logger:Printf("- Found %d invalid item IDs", itemDB.invalidIDCount);
-    Logger:Printf("- Unparsed IDs remaining: %d",  MAX_ITEM_COUNT - itemDB.parsedIDCount - itemDB.deprecatedIDCount);
+    Logger:Printf("- Found %d valid items", Length(itemDB.idMap));
+    Logger:Printf("- Found %d deprecated/old/test items", Length(itemDB.deprecatedIDs));
+    Logger:Printf("- Found %d invalid item IDs", Length(itemDB.invalidIDs));
+    Logger:Printf("- Unparsed IDs remaining: %d",  MAX_ITEM_COUNT - Length(itemDB.idMap) - Length(itemDB.deprecatedIDs));
 end
 
 function Data:RescanAllItems(shouldReset)
@@ -187,7 +197,6 @@ function Data:ResetItemDatabase()
     itemDB.scanEnabled = false;
 
     itemDB.idMap = {};              -- maps item ID to item link
-    itemDB.parsedIDCount = 0;
 
     itemDB.nameMap = {};            -- maps words in item name to item IDs
     itemDB.rarityMap = {};          -- maps item rarity to item IDs
@@ -197,9 +206,19 @@ function Data:ResetItemDatabase()
     itemDB.propertyMap = {};        -- maps item ID to parsed list of properties this item has
 
     itemDB.deprecatedIDs = {};
-    itemDB.invalidIDs = {};
-    itemDB.deprecatedIDCount = 0;
-    itemDB.invalidIDCount = 0;         
+    itemDB.invalidIDs = {};   
+end
+
+function Data:RemoveID(itemID)
+    local itemDB = Arma.db.global.itemDB;
+
+    if (itemDB.idMap[itemID] ~= nil) then
+        itemDB.idMap[itemID] = nil;
+    elseif (itemDB.deprecatedIDs[itemID] ~= nil) then
+        itemDB.deprecatedIDs[itemID] = nil;
+    elseif (itemDB.invalidIDs[itemID] ~= nil) then
+        itemDB.invalidIDs[itemID] = nil;
+    end
 end
 
 -- Create the tooltip for parsing.
@@ -230,17 +249,15 @@ function Data:GetTooltipText(link)
 end
 
 function Data:AddItem(id, itemName, itemLink, itemRarity, itemType, itemSubtype)
-    Logger:Print(itemLink);
+    Logger:Display("Adding item: %s", itemLink);
 
     local itemDB = Arma.db.global.itemDB;
 
     -- Map id to link
     itemDB.idMap[id] = itemLink;
-    itemDB.parsedIDCount = itemDB.parsedIDCount + 1;
 
     if (itemDB.invalidIDs[id] == true) then
         itemDB.invalidIDs[id] = nil;
-        itemDB.invalidIDCount = itemDB.invalidIDCount - 1;
     end
 
     local tooltipText = self:GetTooltipText(itemLink);
@@ -507,4 +524,15 @@ function Data:PrintDatabase()
             Logger:Print(k1 .. " -> " .. v1);
         end
     end
+end
+
+function Data:PrintAllItemLinks()
+    local itemDB = Arma.db.global.itemDB;
+
+    Logger:Display("|cffff00ff|Hitem:19019:911:::::1741::60:::::::|h[Thunderfury, Blessed Blade of the Windseeker]|h|r");
+    -- |cff9d9d9d|Hitem:3299::::::::20:257::::::|h[Fractured Canine]|h|r
+    -- for k,v in pairs(itemDB.idMap) do
+    --     local s = string.sub(v, 1, 10) .. string.sub(v, 13, -1);
+    --     Logger:Display("%d -> %s", k, s);
+    -- end
 end

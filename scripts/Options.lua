@@ -144,12 +144,13 @@ end
 
 -- Test
 function Arma:TestCommand(info)
-
+    Data:PrintAllItemLinks();
 end
 
 -- Scan
 function Arma:SetScanEnabled(info, val)
     Data:SetScanEnabled(val);
+    Data:RemoveID(5071);
     Logger:Printf("%s %s.", "Item scan", IFTE(val, "enabled", "disabled"));
 end
 
@@ -162,7 +163,7 @@ function Arma:DatabaseReset(info)
     Data:DatabaseReset();
 end
 
--- Reset database
+-- Print database stats
 function Arma:DatabaseStats(info)
     Data:PrintDatabaseStats();
 end

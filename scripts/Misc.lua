@@ -70,9 +70,12 @@ function Misc:GetItemIDFromLink(itemLink)
     return ID;
 end
 
-function Misc:GetItemVendorPrice(itemID)
-    local itemSellPrice = 0;
-    local _, _, _, _, _, _, _, _, _, _, itemSellPrice = GetItemInfo(itemID);
+function Misc:GetItemVendorPrice(itemIDOrLink)
+	local name, _, _, _, _, _, _, _, _, _, itemSellPrice = GetItemInfo(itemIDOrLink);
+	if (not name) then
+		itemSellPrice = 0;
+	end
+
     return itemSellPrice;
 end
 
@@ -148,6 +151,17 @@ end
 
 function Dec(value)
 	return value - 1;
+end
+
+function Length(t)
+	local length = 0;
+	if (type(t) == "table") then
+		for k,v in pairs(t) do
+			length = length + 1;
+		end
+	end
+
+	return length;
 end
 
 ----------------------------------------------------------

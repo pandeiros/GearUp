@@ -65,6 +65,7 @@ local DEFAULT_STYLE = {
     secondaryFontColor      = COLOR_SHADES["Gray"][15],
     backgroundColor         = COLOR_SHADES["Gray"][3],
 
+    displayColor            = COLOR_SHADES["Orange"][9],
     verboseColor            = COLOR_SHADES["Gray"][10],
     logColor                = COLOR_WHITE,
     warningColor            = COLOR_YELLOW,
