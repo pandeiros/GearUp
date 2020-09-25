@@ -86,6 +86,11 @@ end)
 
 function Data:Initialize()
     self.lastIDScanned = 1;
+    self.pendingItemIDs = {};
+
+    if (not Arma.db.global.itemDB) then
+        self:ResetItemDatabase();
+    end
 end
 
 function Data:DatabaseReset()
@@ -105,6 +110,11 @@ function Data.IsScanEnabled()
 end
 
 function Data:GetItemIDToScan()
+    if (Length(self.pendingItemIDs) > 0) then
+        local pendingID = table.remove(self.pendingItemIDs);
+        return pendingID;
+    end
+
     local itemDB = Arma.db.global.itemDB;
 
     if (Length(itemDB.idMap) + Length(itemDB.deprecatedIDs) == MAX_ITEM_COUNT) then
@@ -120,6 +130,21 @@ function Data:GetItemIDToScan()
     return true, self.lastIDScanned;
 end
 
+function Data:AddPendingItemToScan(itemID, itemLink)
+    if (itemID == nil and itemLink == nil) then
+        return;
+    end
+
+    if (itemID == nil) then
+        itemID = Misc:GetItemIDFromLink(itemLink);
+    end
+
+    if self:WasScanned(itemID) == false then
+        Logger:Display("Adding pending item ID: %d", itemID);
+        table.insert(self.pendingItemIDs, itemID);
+    end
+end
+
 function Data:ScanItems()
     local itemDB = Arma.db.global.itemDB;
     if (not itemDB.scanEnabled) then
@@ -130,14 +155,19 @@ function Data:ScanItems()
     if (result) then
         self:ScanItem(itemID);
     else
-        Logger:Print("End of scan.");
+        Logger:Display("End of scan.");
         self:SetScanEnabled(false);
     end    
 end
 
 function Data:ScanItem(itemID, itemLink)
+    itemID = tonumber(itemID);
     if (itemID == nil or tonumber(itemID) <= 0) then
-        return;
+        if (itemLink) then
+            itemID = Misc:GetItemIDFromLink(itemLink);
+        else
+            return;
+        end
     end
 
     if (Data:WasScanned(itemID)) then
@@ -149,6 +179,12 @@ function Data:ScanItem(itemID, itemLink)
     local itemLinkOrID = itemID or itemLink;
     itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
         itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemLinkOrID);
+
+    if (itemName == nil) then
+        -- Logger:Display("Item ID: %d, link: %s", itemID, Misc:GenerateItemLinkFromID(itemID));
+        -- itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
+        --     itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemLinkOrID);
+    end
 
     if (itemName ~= nil) then
         if (not Data:ValidateItem(itemName)) then
@@ -182,7 +218,7 @@ end
 
 function Data:WasScanned(itemID)
     local itemDB = Arma.db.global.itemDB;
-    if (itemDB.idMap[itemID] ~= nil or itemDB.deprecatedIDs[itemID] ~= nil) then
+    if itemDB.idMap[itemID] ~= nil or itemDB.deprecatedIDs[itemID] ~= nil then
         return true;
     end
 
@@ -249,6 +285,7 @@ function Data:GetTooltipText(link)
 end
 
 function Data:AddItem(id, itemName, itemLink, itemRarity, itemType, itemSubtype)
+    id = tonumber(id);
     Logger:Display("Adding item: %s", itemLink);
 
     local itemDB = Arma.db.global.itemDB;
@@ -529,10 +566,10 @@ end
 function Data:PrintAllItemLinks()
     local itemDB = Arma.db.global.itemDB;
 
-    Logger:Display("|cffff00ff|Hitem:19019:911:::::1741::60:::::::|h[Thunderfury, Blessed Blade of the Windseeker]|h|r");
+    -- Logger:Display("|cffff00ff|Hitem:19019:911:::::1741::60:::::::|h[Thunderfury, Blessed Blade of the Windseeker]|h|r");
     -- |cff9d9d9d|Hitem:3299::::::::20:257::::::|h[Fractured Canine]|h|r
-    -- for k,v in pairs(itemDB.idMap) do
-    --     local s = string.sub(v, 1, 10) .. string.sub(v, 13, -1);
-    --     Logger:Display("%d -> %s", k, s);
-    -- end
+    for k,v in pairs(itemDB.idMap) do
+        local s = string.sub(v, 1, 10) .. string.sub(v, 13, -1);
+        Logger:Display("%d -> %s", k, s);
+    end
 end

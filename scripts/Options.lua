@@ -165,5 +165,5 @@ end
 
 -- Print database stats
 function Arma:DatabaseStats(info)
-    Data:PrintDatabaseStats();
+    Data:PrintDatabase();
 end

@@ -67,7 +67,11 @@ end
 
 function Misc:GetItemIDFromLink(itemLink)
 	local _, _, ID = self:GetItemDataFromLink(itemLink);
-    return ID;
+    return tonumber(ID);
+end
+
+function Misc:GenerateItemLinkFromID(itemID)
+	return string.format("|cffffffff|Hitem:%d::::::::60:::::::|h[Item link]|h|r", itemID);
 end
 
 function Misc:GetItemVendorPrice(itemIDOrLink)

@@ -135,7 +135,7 @@ function Frames:OnUpdate(timeElapsed)
     end
 
     -- Task scheduling
-    for _ = 1,10 do
+    for _ = 1,1 do
         Async:ScheduleTask();
         Data:ScanItems();
     end
@@ -174,7 +174,7 @@ function Tooltip:AddItemInfo(tooltip)
     local itemID = Misc:GetItemIDFromLink(link);
 
     if (link or itemID) then
-        -- Data:ScanItem(itemID, link);
+        Data:AddPendingItemToScan(itemID, link);
         return;
     end
     -- local itemData = Data:PrepareTooltipData(itemID);
