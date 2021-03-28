@@ -159,7 +159,7 @@ function Frames:OpenConfigFrame()
     -- self.ConfigFrame:Draw();
 end
 
-function Frames:CloseMainFrame()
+function Frames:CloseConfigFrame()
     -- if (self.ConfigFrame) then
     --     self.ConfigFrame:Release();
     -- end
@@ -175,8 +175,38 @@ function Tooltip:AddItemInfo(tooltip)
 
     if (link or itemID) then
         Data:AddPendingItemToScan(itemID, link);
+    end
+
+    if (link) then
+        -- tooltip:AddLine(ARMA_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
+        local s = string.sub(link, 1, 10) .. string.sub(link, 13, -1);
+        -- tooltip:AddLine(s, Colors:HEXToRGB(style.primaryAccentColor));
+        -- Logger:Display(s);
+        -- Logger:Display(link);
+        -- PrintAllData(tooltip);
+        -- if (tooltip.default ~= nil) then
+        --     tooltip.default = nil;
+        --     print("DEFAULT");
+        -- else
+        --     -- tooltip.default = 1;
+        --     print("NO DEFAULT");
+        -- end
+        -- local attr = tooltip:GetAttribute();
+        -- local spell = tooltip:GetSpell();
+        -- local id = tooltip:GetID();
+        -- local unit = tooltip:GetUnit();
+        -- local forbid = tooltip:IsForbidden();
+        -- print(attr);
+        -- print(spell);
+        -- print(id);
+        -- print(unit);
+        -- print(forbid);
+        -- tooltip:SetRecipeResultItem(3473);
+        -- local text = Data:GetTooltipText(link);
+        -- print(text);
         return;
     end
+
     -- local itemData = Data:PrepareTooltipData(itemID);
 
     -- self:PrintItemData(itemData, 0);

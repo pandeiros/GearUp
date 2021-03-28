@@ -189,7 +189,7 @@ function CreateObject(objectOrName, ...)
     return object
 end
 
-function GetAllData(t, prevData)
+function GetAllDataOld(t, prevData)
 	-- if prevData == nil, start empty, otherwise start with prevData
 	local data = prevData or {}
   
@@ -211,5 +211,125 @@ function GetAllData(t, prevData)
 	end
   
 	-- include the data from index into data, recursively, and return
-	return GetAllData(index, data)
+	return GetAllDataOld(index, data)
+end
+
+function PrintAllDataOld(t, prevData)
+	-- if prevData == nil, start empty, otherwise start with prevData
+	local data = prevData or {}
+	print("==========================");
+	
+	-- copy all the attributes from t
+	for k,v in pairs(t) do
+		print(tostring(k) .. " -> " .. tostring(v));
+		data[k] = data[k] or v
+	end
+  
+	-- get t's metatable, or exit if not existing
+	local mt = getmetatable(t)
+	if type(mt) ~='table' then
+		return data;
+	end
+  
+	-- get the __index from mt, or exit if not table
+	local index = mt.__index
+	if type(index) ~='table' then
+		return data;
+	end
+  
+	-- include the data from index into data, recursively, and return
+	return PrintAllDataOld(index, data)
+end
+
+function PrintAllProperties(t, prevData)
+	-- if prevData == nil, start empty, otherwise start with prevData
+	local data = prevData or {}
+	print("==========================");
+	
+	-- copy all the attributes from t
+	for k,v in pairs(t) do
+		if (type(v) ~= "function") then
+			print(tostring(k) .. " -> " .. tostring(v));
+			data[k] = data[k] or v
+		end
+	end
+  
+	-- get t's metatable, or exit if not existing
+	local mt = getmetatable(t)
+	if type(mt) ~='table' then
+		return data;
+	end
+  
+	-- get the __index from mt, or exit if not table
+	local index = mt.__index
+	if type(index) ~='table' then
+		return data;
+	end
+  
+	-- include the data from index into data, recursively, and return
+	return PrintAllProperties(index, data)
+end
+
+function PrintAllData(object, prevData, keys, depth)
+	-- if prevData == nil, start empty, otherwise start with prevData
+	local data = prevData or {}
+	local keys = keys or {};
+	depth = depth or 0;
+	
+	-- print all the attributes from t
+	for k,v in pairs(object) do
+		-- print(tostring(k) .. " -> " .. tostring(v));
+		data[k] = data[k] or v
+		table.insert(keys, tostring(k));
+	end
+  
+	-- get t's metatable, or exit if not existing
+	local mt = getmetatable(object)
+	if type(mt) ~='table' then
+		return;
+	end
+  
+	-- get the __index from mt, or exit if not table
+	local index = mt.__index
+	if type(index) ~='table' then
+		return;
+	end
+  
+	-- include the data from index into data, recursively, and return
+	PrintAllData(index, data, keys, depth + 1);
+
+	-- printing time
+	if (depth == 0) then
+		table.sort(keys);
+
+		for i,k in ipairs(keys) do
+			if (type(data[k]) ~= "function") then 
+				PrintProperty(k, data[k], 0);
+			end
+		end
+		-- print("========================");
+		for i,k in ipairs(keys) do
+			if (type(data[k]) == "function") then 
+				PrintProperty(k, data[k], 0);
+			end
+		end
+	end
+end
+
+function PrintProperty(property, value, depth)
+	local str = " ";
+	for _ = 0, depth do
+		str = "-" .. str;
+	end
+
+	if (type(value) == "function") then
+		-- print(str .. tostring(property));
+	elseif (type(value) ~= "table") then
+		print(str .. tostring(property) .. " : " .. tostring(value));
+	else
+		print(str .. tostring(property))
+		for k,v in pairs(value) do
+			PrintProperty(k, v, depth+1);
+		end	
+	end
 end

@@ -9,6 +9,12 @@ local Style = Arma.Style;
 local Colors = Arma.Style.Colors;
 local Async = Arma.Async;
 
+local L = AceLocale:GetLocale("Arma");
+
+DATA_USE_BONUSES_KEY = "useBonuses";
+DATA_EQUIP_BONUSES_KEY = "equipBonuses";
+DATA_HIT_BONUSES_KEY = "hitBonuses";
+
 -- Data taken from classic.wowhead.com
 local MAX_ITEM_ID = 24283;
 local MAX_ITEM_COUNT = 15906;
@@ -112,7 +118,7 @@ end
 function Data:GetItemIDToScan()
     if (Length(self.pendingItemIDs) > 0) then
         local pendingID = table.remove(self.pendingItemIDs);
-        return pendingID;
+        return true, pendingID;
     end
 
     local itemDB = Arma.db.global.itemDB;
@@ -139,7 +145,7 @@ function Data:AddPendingItemToScan(itemID, itemLink)
         itemID = Misc:GetItemIDFromLink(itemLink);
     end
 
-    if self:WasScanned(itemID) == false then
+    if (self:WasScanned(itemID) == false) then
         Logger:Display("Adding pending item ID: %d", itemID);
         table.insert(self.pendingItemIDs, itemID);
     end
@@ -232,6 +238,59 @@ function Data:ResetItemDatabase()
 
     itemDB.scanEnabled = false;
 
+    itemDB.items = {};          -- Main item database, loaded from files.
+    itemDB.bonuses ={};         -- Stores information about custom equipm use and hit bonuses.
+    
+    -- EN database contains all item data (properties, requirements, etc.)
+    itemDB.items[MAIN_LOCALE_DB_KEY] = {};  
+    itemDB.bonuses[MAIN_LOCALE_DB_KEY][DATA_USE_BONUSES_KEY] = {};  
+    itemDB.bonuses[MAIN_LOCALE_DB_KEY][DATA_EQUIP_BONUSES_KEY] = {};  
+    itemDB.bonuses[MAIN_LOCALE_DB_KEY][DATA_HIT_BONUSES_KEY] = {};  
+
+    -- Other locales will only contain localized info (name, custom effects etc.)
+    -- self:CreateLocalizedContainers("esES");
+
+    -- Item data structure for enUS/enGB locales.
+    -- This data is pregenerated and provided with the addon.
+    -- Search engine won't work with other locales, unless one is supported.
+    -- ID = {
+    --     name = "",
+    --     rarity = <0-7>,
+    --     itemLevel = int,
+    --     requiredLevel = <0-60>,
+    --     type = "",
+    --     subtype = "",
+    --     stackCount = int,
+    --     equipLocation = "",
+    --     textureID = "",
+    --     sellPrice = int,
+    --     classes = {},        -- Classes that can use/equip this item. If empty, all classes can.
+    --     properties = {},     -- All item properties: attribute bonuses, damage, armor type, resistances, speed, etc.
+    --     equipBonuses = {},   -- Custom properties marked as Equip: ... Common bonuses like spell power, hit chance, crit chance etc. are stored in 'properties'.
+    --     useBonuses = {},     -- Custom use effects marked as Use: ...
+    --     hitBonuses = {}      -- Custom on hit effects marked as Chance on hit: ...        
+    --                          -- NOTE: equip, use and hit bonus containers store only ID of data stored somewhere else. This allows for easier translations.
+    -- }
+
+    -- Data structure for equip, use and hit bonuses.
+    -- ID = {
+    --     items = {},          -- IDs of items that have this bonus.
+    --     text = "",           -- Bonus description (in EN).
+    -- }
+
+    -- Localized item data.
+    -- ID = {
+    --     name = "",
+    -- }
+
+    -- Localized bonuses data.
+    -- ID = {
+    --     text = "",
+    -- }
+
+
+    -- #OLD
+
     itemDB.idMap = {};              -- maps item ID to item link
 
     itemDB.nameMap = {};            -- maps words in item name to item IDs
@@ -243,6 +302,13 @@ function Data:ResetItemDatabase()
 
     itemDB.deprecatedIDs = {};
     itemDB.invalidIDs = {};   
+end
+
+function Data:CreateLocalizedContainers(locale)
+    itemDB.items[locale] = {};
+    itemDB.bonuses[locale][DATA_USE_BONUSES_KEY] = {};
+    itemDB.bonuses[locale][DATA_EQUIP_BONUSES_KEY] = {};
+    itemDB.bonuses[locale][DATA_HIT_BONUSES_KEY] = {};
 end
 
 function Data:RemoveID(itemID)
@@ -262,9 +328,12 @@ local ParsingTooltip = CreateFrame("GameTooltip", "ArmaParsingTooltip", nil, "Ga
 ParsingTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
 function Data:GetTooltipText(link)
-    -- Pass the item link to the tooltip.
-    ParsingTooltip:SetHyperlink(link)
+    local ID = Misc:GetItemIDFromLink(link);
 
+    -- Use SetHyperLink for specific item variation. Use SetItemID for generic item (i.e. to include <Random enchantment> property)
+    -- ParsingTooltip:SetHyperlink(link)
+    ParsingTooltip:SetItemByID(ID)
+    
     -- Scan the tooltip:
     local tooltipText = "";
     for i = 2, ParsingTooltip:NumLines() do -- Line 1 is always the name so you can skip it.
@@ -394,9 +463,26 @@ end
 function Data:ParseItemTooltipLine(id, itemType, itemSubtype, tooltipLine)
     local itemDB = Arma.db.global.itemDB;
 
-    if (tooltipLine:find("Soulbound") or tooltipLine:find("Soulbound") or tooltipLine:find("Soulbound")) then
+    tooltipLine = tooltipLine:match(REGEX_REMOVE_EDGE_SPACES);
+    if (string.len(tooltipLine) == 0) then
+        return;
+    end
+
+    if (not L) then
+        return;
+    end
+
+    if (tooltipLine:find(REGEX_SOULBOUND)) then
+        -- do nothing
+    elseif (tooltipLine:find(REGEX_UNIQUE)) then
+    elseif (tooltipLine:find(REGEX_BOP)) then
+    elseif (tooltipLine:find(REGEX_BOE)) then
+
+
+
+    if (tooltipLine:find(REGEX_SOULBOUND) or tooltipLine:find(REGEX_BOP) or tooltipLine:find(REGEX_BOE)) then
         -- do nothing...
-    elseif (tooltipLine:find("Unique")) then
+    elseif (tooltipLine:find(REGEX_UNIQUE)) then
         -- do nothing...
     else
         if (itemType == "Weapon") then

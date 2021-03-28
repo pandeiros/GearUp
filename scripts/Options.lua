@@ -144,7 +144,9 @@ end
 
 -- Test
 function Arma:TestCommand(info)
-    Data:PrintAllItemLinks();
+    -- Data:PrintAllItemLinks();
+    Logger:Display("|cffff00ff|Hitem:6337::::::1179::60:::::::|h[Infantry Leggings]|h|r");
+    Logger:Display("|cffff00ff|Hitem:6337::::::::60:::::::|h[Infantry Leggings]|h|r");
 end
 
 -- Scan
@@ -165,5 +167,6 @@ end
 
 -- Print database stats
 function Arma:DatabaseStats(info)
-    Data:PrintDatabase();
+    Data:PrintDatabaseStats();
+    -- Data:PrintDatabase();
 end

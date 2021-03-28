@@ -1,6 +1,26 @@
 -- #TODO Copyright here
 
+MAIN_LOCALE_DB_KEY = "main";
+
 local L = AceLocale:GetLocale("Arma");
+local mainLocales = {"enUS", "enGB"};		-- Locales that uses "main" database, without need for translation.
+local supportedLocales = {"enUS", "enGB"};
+local locale = GetLocale();
+
+function IsSupportingCurrentLocale()
+    for _, v in pairs(supportedLocales) do
+		if v == locale then return true end
+	end
+	return false
+end
+
+function GetDatabaseLocaleKey()
+	for _, v in pairs(mainLocales) do
+		if v == locale then return MAIN_LOCALE_DB_KEY end
+	end
+	return locale
+end
+
 
 ----------------------------------------------------------
 -- Generated locales

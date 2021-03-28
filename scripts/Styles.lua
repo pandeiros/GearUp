@@ -91,12 +91,12 @@ function Style:GetColorShade(color, brightness)
     return COLOR_SHADES[color][brightness + 1];
 end
 
--- rarity level between 0 and 7
+-- Rarity level between 0 and 7
 function Style:GetRarityColor(rarityLevel)
     return COLOR_DATA["Rarity"][rarityLevel + 1];
 end
 
--- operation quality between 1 and 6 (worst to best)
+-- Operation quality between 1 and 6 (worst to best)
 function Style:GetOperationQualityColor(opQuality)
     return OP_QUALITY_COLORS[opQuality];
 end
@@ -108,6 +108,7 @@ function Style:GetClassColor(class)
 
     return "FFFFFF";
 end
+
 ----------------------------------------------------------
 -- Color functions
 ----------------------------------------------------------
