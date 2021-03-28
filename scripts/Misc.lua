@@ -1,8 +1,8 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
-local Misc = Arma.Misc;
-local Style = Arma.Style;
+local GU = _G.GU;
+local Misc = GU.Misc;
+local Style = GU.Style;
 local Colors = Style.Colors;
 
 ----------------------------------------------------------

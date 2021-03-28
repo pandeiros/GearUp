@@ -12,9 +12,9 @@ AceLocale = LibStub("AceLocale-3.0");
 AceTimer = LibStub("AceTimer-3.0");
 
 -- Main addon object
-_G.Arma = AceAddon:NewAddon("Arma", "AceEvent-3.0", "AceTimer-3.0");
+_G.GU = AceAddon:NewAddon("GU", "AceEvent-3.0", "AceTimer-3.0");
 
 -- Main objects
-_G.Arma.Data = {};
-_G.Arma.Style = {};
-_G.Arma.Misc = {};
+_G.GU.Data = {};
+_G.GU.Style = {};
+_G.GU.Misc = {};

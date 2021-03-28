@@ -1,15 +1,15 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma
-local Auctions = Arma.Data.Auctions;
-local Logger = Arma.Logger;
+local GU = _G.GU
+local Auctions = GU.Data.Auctions;
+local Logger = GU.Logger;
 
-function Arma:PlayerLogin()
+function GU:PlayerLogin()
 	self:Initialize();
 	self:PrintWelcomeMessage();
 end
 
-function Arma:GetItemInfoReceived(itemID, success)
+function GU:GetItemInfoReceived(itemID, success)
 	if not success then success = "" end;
 	if itemID ~= nil then
 		print(itemID .. ": " .. success);
@@ -18,9 +18,9 @@ end
 
 ---------------------------------------------------------
 
-function Arma.ToolTipHook(tooltip)
-	Arma.Frames.Tooltip:AddItemInfo(tooltip);
+function GU.ToolTipHook(tooltip)
+	GU.Frames.Tooltip:AddItemInfo(tooltip);
 end
 
-GameTooltip:HookScript("OnTooltipSetItem", Arma.ToolTipHook);
-ItemRefTooltip:HookScript("OnTooltipSetItem", Arma.ToolTipHook);
+GameTooltip:HookScript("OnTooltipSetItem", GU.ToolTipHook);
+ItemRefTooltip:HookScript("OnTooltipSetItem", GU.ToolTipHook);

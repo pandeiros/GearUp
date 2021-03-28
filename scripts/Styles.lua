@@ -1,10 +1,10 @@
 -- TODO Copyright here
 
-local Arma = _G.Arma;
-local Style = Arma.Style;
+local GU = _G.GU;
+local Style = GU.Style;
 
 local Colors = {};
-Arma.Style.Colors = Colors;
+GU.Style.Colors = Colors;
 
 -- Color shades (from darkest to lighest, 0 - 16)
 local COLOR_SHADES = {

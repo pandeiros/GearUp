@@ -2,7 +2,7 @@
 
 MAIN_LOCALE_DB_KEY = "main";
 
-local L = AceLocale:GetLocale("Arma");
+local L = AceLocale:GetLocale("GU");
 local mainLocales = {"enUS", "enGB"};		-- Locales that uses "main" database, without need for translation.
 local supportedLocales = {"enUS", "enGB"};
 local locale = GetLocale();

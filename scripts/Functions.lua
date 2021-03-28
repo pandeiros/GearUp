@@ -1,15 +1,15 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
-local Colors = Arma.Style.Colors;
-local Logger = Arma.Logger;
+local GU = _G.GU;
+local Colors = GU.Style.Colors;
+local Logger = GU.Logger;
 
 ----------------------------------------------------------
 -- Logging helpers
 ----------------------------------------------------------
 
 -- Print welcome message after player login.
-function Arma:PrintWelcomeMessage()
+function GU:PrintWelcomeMessage()
 	local loginCount = self.db.char.loginCount;
 	local style = self.db.profile.style;
 

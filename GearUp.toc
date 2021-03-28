@@ -1,26 +1,26 @@
 ## Interface: 11305
 ## Author: Pandeiros
 ## Version: 1.0
-## SavedVariables: ArmaMinimapIcon, ArmaDB
-## SavedVariablesPerCharacter: ArmaCharacterDB
+## SavedVariables: GUMinimapIcon, GUDB
+## SavedVariablesPerCharacter: GUCharacterDB
 ## Dependencies:
 ## OptionalDeps:
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 
-## Title: Armamentarium
+## Title: Gear Up!
 ## Notes: Item search engine and gear ranking addon.
 
-# ## Title-deDE: Armamentarium
-# ## Title-esES: Armamentarium
-# ## Title-esMX: Armamentarium
-# ## Title-frFR: Armamentarium
-# ## Title-itIT: Armamentarium
-# ## Title-koKR: Armamentarium
-# ## Title-ptBR: Armamentarium
-# ## Title-ruRU: Armamentarium
-# ## Title-zhCN: Armamentarium
-# ## Title-zhTW: Armamentarium
+# ## Title-deDE: Gear Up!
+# ## Title-esES: Gear Up!
+# ## Title-esMX: Gear Up!
+# ## Title-frFR: Gear Up!
+# ## Title-itIT: Gear Up!
+# ## Title-koKR: Gear Up!
+# ## Title-ptBR: Gear Up!
+# ## Title-ruRU: Gear Up!
+# ## Title-zhCN: Gear Up!
+# ## Title-zhTW: Gear Up!
 # ## Notes-deDE: Item search engine and gear ranking addon.
 # ## Notes-esES: Item search engine and gear ranking addon.
 # ## Notes-esMX: Item search engine and gear ranking addon.
@@ -45,8 +45,8 @@ embeds.xml
 Init.lua
 Config.lua
 
-locales/Armamentarium-enUS.lua
-locales/Armamentarium-esES.lua
+locales/GearUp-enUS.lua
+locales/GearUp-esES.lua
 locales/Locales.lua
 locales/GlobalStrings.lua
 
@@ -66,4 +66,4 @@ scripts/Frames.lua
 scripts/Options.lua
 scripts/Events.lua
 
-Armamentarium.lua
+GearUp.lua

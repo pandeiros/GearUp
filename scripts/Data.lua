@@ -1,13 +1,13 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local GU = _G.GU;
 
-local Data = Arma.Data;
-local Style = Arma.Style;
+local Data = GU.Data;
+local Style = GU.Style;
 
 -- Database defaults
-ARMA_DB_DEFAULT_PROFILE_NAME = "Default";
-ARMA_DB_DEFAULTS = {
+GU_DB_DEFAULT_PROFILE_NAME = "Default";
+GU_DB_DEFAULTS = {
     profile = {
         style = Style:GetDefaultStyle(),
     },

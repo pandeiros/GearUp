@@ -1,9 +1,9 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local GU = _G.GU;
 
 local Items = {};
-Arma.Data.Items = Items;
+GU.Data.Items = Items;
 
 ----------------------------------------------------------
 -- Equipment properties

@@ -1,26 +1,26 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
-local Colors = Arma.Style.Colors;
+local GU = _G.GU;
+local Colors = GU.Style.Colors;
 
 local Logger = {};
-Arma.Logger = Logger;
+GU.Logger = Logger;
 
 ----------------------------------------------------------
 -- Logging helpers
 ----------------------------------------------------------
 
-local ARMA_PREFIX = "<A> ";
+local GU_PREFIX = "<GU> ";
 
 -- Print to default tab. 
 function Logger:Print(...)
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     AceConsole:Print(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, ...));
 end
 
 -- Print formatted text to default tab.
 function Logger:Printf(format, ...)
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     AceConsole:Printf(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, format), ...);
 end
 
@@ -31,11 +31,11 @@ end
 
 -- Verbose logging. Only available with dev mode enabled.
 function Logger:Verb(format, ...)
-    if (not Arma:GetDevModeEnabled()) then
+    if (not GU:GetDevModeEnabled()) then
         return;
     end
 
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     self:Printfc(style.verboseColor, format, ...);
 end
 
@@ -44,18 +44,18 @@ function Logger:Log(format, ...)
 end
 
 function Logger:Warn(format, ...)
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     self:Printfc(style.warningColor, format, ...);
 end
 
 function Logger:Err(format, ...)
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     self:Printfc(style.errorColor, format, ...);
 end
 
 -- Official user messages. Uses addon-specific prefix and text color.
 function Logger:Display(format, ...)
-    local style = Arma.db.profile.style;
-    format = ARMA_PREFIX .. format;
+    local style = GU.db.profile.style;
+    format = GU_PREFIX .. format;
     self:Printfc(style.displayColor, format, ...);
 end

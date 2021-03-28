@@ -1,6 +1,6 @@
 -- #TODO Copyright here
 
-local L = AceLocale:GetLocale("Arma");
+local L = AceLocale:GetLocale("GU");
 
 ----------------------------------------------------------
 -- Item types

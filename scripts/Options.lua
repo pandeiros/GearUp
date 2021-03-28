@@ -1,17 +1,17 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local GU = _G.GU;
 
-local Frames = Arma.Frames;
-local Data = Arma.Data;
-local Logger = Arma.Logger;
+local Frames = GU.Frames;
+local Data = GU.Data;
+local Logger = GU.Logger;
 
 local Options = {};
 Data.Options = Options;
 
 local OptionsTable = {
-    name = ARMA_ADDON_NAME,
-    handler = Arma,
+    name = GU_ADDON_NAME,
+    handler = GU,
     type = 'group',
     args = {
         devmode = {
@@ -39,15 +39,15 @@ local OptionsTable = {
         config = {
             guiHidden = true,
             type = 'execute',
-            name = 'Armamentarium config',
-            desc = 'Open Armamentarium configuration window',
+            name = 'Gear Up config',
+            desc = 'Open Gear Up configuration window',
             func = 'OpenConfig',
         },
 
         toggle = {
             type = "toggle",
             name = "Enable/Disable toggle",
-            desc = "Enable/disable the Armamentarium addon",
+            desc = "Enable/disable the Gear Up addon",
             set = "SetEnableToggle",
             get = "GetEnableToggle",
         },
@@ -87,20 +87,20 @@ local OptionsTable = {
     },
 }
 
-AceConfig:RegisterOptionsTable(ARMA_ADDON_NAME, OptionsTable, {"arma", "armamentarium"});
+AceConfig:RegisterOptionsTable(GU_ADDON_NAME, OptionsTable, {"gu", "gearup"});
 Options.OptionsTable = OptionsTable;
 
 -- Development mode
-function Arma:GetDevModeEnabled()
-    return (ARMA_DEV_MODE_FORCED or ARMA_DEV_MODE_ENABLED and not self:GetDevModeToggleHidden());
+function GU:GetDevModeEnabled()
+    return (GU_DEV_MODE_FORCED or GU_DEV_MODE_ENABLED and not self:GetDevModeToggleHidden());
 end
 
-function Arma:GetDevModeToggleHidden()
+function GU:GetDevModeToggleHidden()
     return not self.devmode;
 end
 
-function Arma:SetDevModeToggle(info, val)
-    if (not ARMA_DEV_MODE_ENABLED) then
+function GU:SetDevModeToggle(info, val)
+    if (not GU_DEV_MODE_ENABLED) then
         return
     end
     
@@ -108,12 +108,12 @@ function Arma:SetDevModeToggle(info, val)
     Logger:Printf("Development mode %s.", IFTE(val, "enabled", "disabled"));
 end
 
-function Arma:GetDevModeToggle(info)
+function GU:GetDevModeToggle(info)
     return self.devmode;
 end
 
 -- Reset
-function Arma:ResetAllData(info)
+function GU:ResetAllData(info)
     if (not self:GetDevModeEnabled()) then
         return
     end
@@ -122,51 +122,51 @@ function Arma:ResetAllData(info)
 
     self.db:ResetDB(DEFAULT_DB_NAME);
 
-    ArmaDB = nil;
-    ArmaCharacterDB = nil;
+    GUDB = nil;
+    GUCharacterDB = nil;
 end
 
 -- Config
-function Arma:OpenConfig(info)
+function GU:OpenConfig(info)
     -- Frames:OpenConfigFrame();
     Frames:OpenMainFrame();
 end
 
 -- Enable toggle
-function Arma:SetEnableToggle(info, val)
+function GU:SetEnableToggle(info, val)
     self.db.char.enabled = val;
-    Logger:Printf("%s %s.", ARMA_DISPLAY_NAME, IFTE(val, "enabled", "disabled"));
+    Logger:Printf("%s %s.", GU_DISPLAY_NAME, IFTE(val, "enabled", "disabled"));
 end
 
-function Arma:GetEnableToggle(info)
+function GU:GetEnableToggle(info)
     return self.db.char.enabled;
 end
 
 -- Test
-function Arma:TestCommand(info)
+function GU:TestCommand(info)
     -- Data:PrintAllItemLinks();
     Logger:Display("|cffff00ff|Hitem:6337::::::1179::60:::::::|h[Infantry Leggings]|h|r");
     Logger:Display("|cffff00ff|Hitem:6337::::::::60:::::::|h[Infantry Leggings]|h|r");
 end
 
 -- Scan
-function Arma:SetScanEnabled(info, val)
+function GU:SetScanEnabled(info, val)
     Data:SetScanEnabled(val);
     Data:RemoveID(5071);
     Logger:Printf("%s %s.", "Item scan", IFTE(val, "enabled", "disabled"));
 end
 
-function Arma:GetScanEnabled(info)
+function GU:GetScanEnabled(info)
     return Data.IsScanEnabled();
 end
 
 -- Reset database
-function Arma:DatabaseReset(info)
+function GU:DatabaseReset(info)
     Data:DatabaseReset();
 end
 
 -- Print database stats
-function Arma:DatabaseStats(info)
+function GU:DatabaseStats(info)
     Data:PrintDatabaseStats();
     -- Data:PrintDatabase();
 end

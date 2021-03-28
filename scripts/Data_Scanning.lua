@@ -1,15 +1,15 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local GU = _G.GU;
 
-local Data = Arma.Data;
-local Logger = Arma.Logger;
-local Misc = Arma.Misc;
-local Style = Arma.Style;
-local Colors = Arma.Style.Colors;
-local Async = Arma.Async;
+local Data = GU.Data;
+local Logger = GU.Logger;
+local Misc = GU.Misc;
+local Style = GU.Style;
+local Colors = GU.Style.Colors;
+local Async = GU.Async;
 
-local L = AceLocale:GetLocale("Arma");
+local L = AceLocale:GetLocale("GU");
 
 DATA_USE_BONUSES_KEY = "useBonuses";
 DATA_EQUIP_BONUSES_KEY = "equipBonuses";
@@ -24,7 +24,7 @@ local Data_ProcessItemID = Async:Async(function(itemID)
     --         itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemID);
     -- Data:AddItem(itemID, itemName, itemLink, itemRarity, itemType, itemSubtype);
     
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     -- itemDB.processedIDs = itemDB.processedIDs + 1;
     -- if (itemDB.processedIDs % 1000 == 0) then
     --     print("Processed: ", itemDB.processedIDs);
@@ -44,7 +44,7 @@ end)
 
 local Data_GenerateItemIDs = Async:Async(function(startingID, endingID)
     local ids = {};
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     local testItemIDs = {873, 16797, 19721, 13952, 19348, 21603}
 
     -- Iterate from startingID to endingID and add only valid ones.
@@ -94,7 +94,7 @@ function Data:Initialize()
     self.lastIDScanned = 1;
     self.pendingItemIDs = {};
 
-    if (not Arma.db.global.itemDB) then
+    if (not GU.db.global.itemDB) then
         self:ResetItemDatabase();
     end
 end
@@ -106,12 +106,12 @@ function Data:DatabaseReset()
 end
 
 function Data:SetScanEnabled(scanEnabled)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     itemDB.scanEnabled = scanEnabled;
 end
 
 function Data.IsScanEnabled()
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     return itemDB.scanEnabled;
 end
 
@@ -121,7 +121,7 @@ function Data:GetItemIDToScan()
         return true, pendingID;
     end
 
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     if (Length(itemDB.idMap) + Length(itemDB.deprecatedIDs) == MAX_ITEM_COUNT) then
         return false, 0;
@@ -152,7 +152,7 @@ function Data:AddPendingItemToScan(itemID, itemLink)
 end
 
 function Data:ScanItems()
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     if (not itemDB.scanEnabled) then
         return
     end
@@ -180,7 +180,7 @@ function Data:ScanItem(itemID, itemLink)
         return;
     end
 
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     local itemLinkOrID = itemID or itemLink;
     itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
@@ -206,7 +206,7 @@ function Data:ScanItem(itemID, itemLink)
 end
 
 function Data:PrintDatabaseStats()
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     Logger:Printf("- Found %d valid items", Length(itemDB.idMap));
     Logger:Printf("- Found %d deprecated/old/test items", Length(itemDB.deprecatedIDs));
@@ -223,7 +223,7 @@ function Data:RescanAllItems(shouldReset)
 end
 
 function Data:WasScanned(itemID)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     if itemDB.idMap[itemID] ~= nil or itemDB.deprecatedIDs[itemID] ~= nil then
         return true;
     end
@@ -232,9 +232,9 @@ function Data:WasScanned(itemID)
 end
 
 function Data:ResetItemDatabase()
-    Arma.db.global.itemDB = {};
+    GU.db.global.itemDB = {};
 
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     itemDB.scanEnabled = false;
 
@@ -312,7 +312,7 @@ function Data:CreateLocalizedContainers(locale)
 end
 
 function Data:RemoveID(itemID)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     if (itemDB.idMap[itemID] ~= nil) then
         itemDB.idMap[itemID] = nil;
@@ -324,7 +324,7 @@ function Data:RemoveID(itemID)
 end
 
 -- Create the tooltip for parsing.
-local ParsingTooltip = CreateFrame("GameTooltip", "ArmaParsingTooltip", nil, "GameTooltipTemplate")
+local ParsingTooltip = CreateFrame("GameTooltip", "GUParsingTooltip", nil, "GameTooltipTemplate")
 ParsingTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
 function Data:GetTooltipText(link)
@@ -337,8 +337,8 @@ function Data:GetTooltipText(link)
     -- Scan the tooltip:
     local tooltipText = "";
     for i = 2, ParsingTooltip:NumLines() do -- Line 1 is always the name so you can skip it.
-        local left = _G["ArmaParsingTooltipTextLeft"..i]:GetText()
-        local right = _G["ArmaParsingTooltipTextRight"..i]:GetText()
+        local left = _G["GUParsingTooltipTextLeft"..i]:GetText()
+        local right = _G["GUParsingTooltipTextRight"..i]:GetText()
         if left and left ~= "" then
             tooltipText = tooltipText .. left;
         end
@@ -357,7 +357,7 @@ function Data:AddItem(id, itemName, itemLink, itemRarity, itemType, itemSubtype)
     id = tonumber(id);
     Logger:Display("Adding item: %s", itemLink);
 
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     -- Map id to link
     itemDB.idMap[id] = itemLink;
@@ -398,7 +398,7 @@ function Data:ValidateItem(name)
 end
 
 function Data:ProcessItemName(id, itemName)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     words = {};
     for w in itemName:gmatch("%S+") do table.insert(words, w) end
@@ -413,7 +413,7 @@ function Data:ProcessItemName(id, itemName)
 end
 
 function Data:ProcessItemRarity(id, itemRarity)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     if (not itemDB.rarityMap[Misc:GetRarityName(itemRarity)]) then
         itemDB.rarityMap[Misc:GetRarityName(itemRarity)] = {};
@@ -423,7 +423,7 @@ function Data:ProcessItemRarity(id, itemRarity)
 end
 
 function Data:ProcessItemType(id, itemType)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     if (not itemDB.typeMap[itemType]) then
         itemDB.typeMap[itemType] = {};
@@ -433,7 +433,7 @@ function Data:ProcessItemType(id, itemType)
 end
 
 function Data:ProcessItemSubtype(id, itemSubtype)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     if (not itemDB.subtypeMap[itemSubtype]) then
         itemDB.subtypeMap[itemSubtype] = {};
@@ -450,7 +450,7 @@ function Data:ParseItemTooltip(id, itemType, itemSubtype, tooltipText)
     end
 
     -- Create new property entry for this item.
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     if (not itemDB.propertyMap[id]) then
         itemDB.propertyMap[id] = {};
     end
@@ -461,7 +461,7 @@ function Data:ParseItemTooltip(id, itemType, itemSubtype, tooltipText)
 end
 
 function Data:ParseItemTooltipLine(id, itemType, itemSubtype, tooltipLine)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     tooltipLine = tooltipLine:match(REGEX_REMOVE_EDGE_SPACES);
     if (string.len(tooltipLine) == 0) then
@@ -612,14 +612,14 @@ function Data:ProcessItemTooltipLineUse(id, tooltipLine)
 end
 
 function Data:AddItemProperty(id, propertyKey, propertyValue)
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
     itemDB.propertyMap[id][propertyKey] = propertyValue;
     -- Logger:Verb("[" .. id .. "] - " .. propertyKey .. ": " .. propertyValue);
 end
 
 -- Debug purposes only.
 function Data:PrintDatabase()
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     for k,v in pairs(itemDB.nameMap) do
         for i = 1, #v do
@@ -650,7 +650,7 @@ function Data:PrintDatabase()
 end
 
 function Data:PrintAllItemLinks()
-    local itemDB = Arma.db.global.itemDB;
+    local itemDB = GU.db.global.itemDB;
 
     -- Logger:Display("|cffff00ff|Hitem:19019:911:::::1741::60:::::::|h[Thunderfury, Blessed Blade of the Windseeker]|h|r");
     -- |cff9d9d9d|Hitem:3299::::::::20:257::::::|h[Fractured Canine]|h|r

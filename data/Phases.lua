@@ -1,9 +1,9 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
+local GU = _G.GU;
 
 local Phases = {};
-Arma.Data.Phases = Phases;
+GU.Data.Phases = Phases;
 
 local CURRENT_PHASE = 4;
 

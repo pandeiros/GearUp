@@ -1,3 +1,3 @@
 -- #TODO Copyright here
 
-local L = AceLocale:NewLocale("Arma", "esES", false);
+local L = AceLocale:NewLocale("GU", "esES", false);

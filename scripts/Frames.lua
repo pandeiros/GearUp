@@ -1,39 +1,39 @@
 -- #TODO Copyright here
 
-local Arma = _G.Arma;
-local Style = Arma.Style;
+local GU = _G.GU;
+local Style = GU.Style;
 local Colors = Style.Colors;
-local Data = Arma.Data;
-local Logger = Arma.Logger;
-local Async = Arma.Async;
-local Misc = Arma.Misc;
+local Data = GU.Data;
+local Logger = GU.Logger;
+local Async = GU.Async;
+local Misc = GU.Misc;
 
 local Frames = {};
 local Tooltip = {};
-Arma_MainFrame = AceGUI:Create("Frame");
+GU_MainFrame = AceGUI:Create("Frame");
 
-Arma.Frames = Frames;
-Arma.Frames.Tooltip = Tooltip;
-Arma.Frames.MainFrame = Arma_MainFrame;
+GU.Frames = Frames;
+GU.Frames.Tooltip = Tooltip;
+GU.Frames.MainFrame = GU_MainFrame;
 
 ----------------------------------------------------------
 -- Main frame
 ----------------------------------------------------------
 
-AceGUI:Release(Arma_MainFrame);
+AceGUI:Release(GU_MainFrame);
 
-function Arma_MainFrame:GetName()
-    return "Arma_MainFrame";
+function GU_MainFrame:GetName()
+    return "GU_MainFrame";
 end
 
-function Arma_MainFrame:Draw()
+function GU_MainFrame:Draw()
     self.timeSinceOpened = 0;
     self.timeSinceLastUpdate = 0;
     self.updateInterval = 0.1;
     -- self.updateInterval = 0.0167;
     self.count = 0;
 
-    self:SetTitle(ARMA_ADDON_NAME);
+    self:SetTitle(GU_ADDON_NAME);
     self:SetStatusText("");
     self:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
     self:SetLayout("Fill");
@@ -47,13 +47,13 @@ end
 local function SelectGroup(container, event, group)
     container:ReleaseChildren();
     if group == "SettingsTab" then
-        Arma_MainFrame:DrawSettingsTab(container);
+        GU_MainFrame:DrawSettingsTab(container);
     elseif group == "OtherTab" then
-        Arma_MainFrame:DrawOtherTab(container);
+        GU_MainFrame:DrawOtherTab(container);
     end
 end
 
-function Arma_MainFrame:DrawTabs()
+function GU_MainFrame:DrawTabs()
     self.TabGroup = AceGUI:Create("TabGroup");
     self.TabGroup:SetLayout("Flow");
     self.TabGroup:SetTabs({
@@ -63,7 +63,7 @@ function Arma_MainFrame:DrawTabs()
     self.TabGroup:SelectTab("SettingsTab");
 end
 
-function Arma_MainFrame:DrawSettingsTab(container)
+function GU_MainFrame:DrawSettingsTab(container)
     local description = AceGUI:Create("Label");
     description:SetText("This is Settings Tab");
     description:SetFullWidth(true);
@@ -75,7 +75,7 @@ function Arma_MainFrame:DrawSettingsTab(container)
     container:AddChild(button);
 end
     
-function Arma_MainFrame:DrawOtherTab(container)
+function GU_MainFrame:DrawOtherTab(container)
     local description = AceGUI:Create("Label");
     description:SetText("This is Other Tab");
     description:SetFullWidth(true);
@@ -87,13 +87,13 @@ function Arma_MainFrame:DrawOtherTab(container)
     container:AddChild(button);
 end
 
-function Arma_MainFrame:Tick(deltaTime)
+function GU_MainFrame:Tick(deltaTime)
 end
 
-function Arma_MainFrame:OnUpdate(timeElapsed)
+function GU_MainFrame:OnUpdate(timeElapsed)
 end
 
--- Arma_MainFrame.frame:SetScript("OnUpdate", function(self, timeElapsed) Arma_MainFrame:OnUpdate(timeElapsed) end);
+-- GU_MainFrame.frame:SetScript("OnUpdate", function(self, timeElapsed) GU_MainFrame:OnUpdate(timeElapsed) end);
 
 local UpdateFrame = CreateFrame("Frame");
 UpdateFrame:SetScript("OnUpdate", function(self, timeElapsed)
@@ -114,7 +114,7 @@ Frames:Initialize();
 
 function Frames:Tick(deltaTime)
     -- Data:ScanItems();
-    -- local itemDB = Arma.db.global.itemDB;
+    -- local itemDB = GU.db.global.itemDB;
     -- Logger:Verb(itemDB.processedIDs .. " -- " .. itemDB.deprecatedIDs .. " -- " .. #itemDB.invalidIDs);
 end
 
@@ -143,7 +143,7 @@ end
 
 function Frames:OpenMainFrame()
     self.MainFrame = AceGUI:Create("Frame");
-    table.insert(UISpecialFrames, "Arma_MainFrame");
+    table.insert(UISpecialFrames, "GU_MainFrame");
     self.MainFrame:Draw();
 end
 
@@ -155,7 +155,7 @@ end
 
 function Frames:OpenConfigFrame()
     -- self.ConfigFrame = AceGUI:Create("Frame");
-    -- table.insert(UISpecialFrames, "Arma_ConfigFrame");
+    -- table.insert(UISpecialFrames, "GU_ConfigFrame");
     -- self.ConfigFrame:Draw();
 end
 
@@ -168,7 +168,7 @@ end
 -----------------------------------------------------------
 
 function Tooltip:AddItemInfo(tooltip)
-    local style = Arma.db.profile.style;
+    local style = GU.db.profile.style;
     
     local name, link = tooltip:GetItem();
     local itemID = Misc:GetItemIDFromLink(link);
@@ -178,7 +178,7 @@ function Tooltip:AddItemInfo(tooltip)
     end
 
     if (link) then
-        -- tooltip:AddLine(ARMA_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
+        -- tooltip:AddLine(GU_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
         local s = string.sub(link, 1, 10) .. string.sub(link, 13, -1);
         -- tooltip:AddLine(s, Colors:HEXToRGB(style.primaryAccentColor));
         -- Logger:Display(s);
@@ -216,7 +216,7 @@ function Tooltip:AddItemInfo(tooltip)
     local bShouldShowInfo = (vendorPrice > 0);
     if (bShouldShowInfo) then
         tooltip:AddLine(" ", Colors:HEXToRGB(style.primaryAccentColor));
-        tooltip:AddLine(ARMA_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
+        tooltip:AddLine(GU_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
         if (vendorPrice > 0) then
             -- SetTooltipMoney(tooltip, vendorPrice, "STATIC", Colors:GetColorStr(style.vendorColor, "|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:"), "");
             --tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Data:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.vendorColor));
