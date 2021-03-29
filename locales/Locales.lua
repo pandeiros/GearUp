@@ -2,28 +2,50 @@
 
 MAIN_LOCALE_DB_KEY = "main";
 
-local L = AceLocale:GetLocale("GU");
+local L = GU_AceLocale:GetLocale("GU");
 local mainLocales = {"enUS", "enGB"};		-- Locales that uses "main" database, without need for translation.
 local supportedLocales = {"enUS", "enGB"};
-local locale = GetLocale();
+local currentLocale = GetLocale();
 
-function IsSupportingCurrentLocale()
+local GU = _G.GU;
+
+local Locales = {};
+GU.Locales = Locales;
+
+function Locales:GetCurrentLocale()
+	return currentLocale;
+end
+
+function Locales:IsCurrentLocaleMainLocale()
+	for _, v in pairs(mainLocales) do
+		if v == currentLocale then return true end
+	end
+	return false;
+end
+
+function Locales:IsSupportingCurrentLocale()
+    for _, v in pairs(supportedLocales) do
+		if v == currentLocale then return true end
+	end
+	return false;
+end
+
+function Locales:IsSupportingLocale(locale)
     for _, v in pairs(supportedLocales) do
 		if v == locale then return true end
 	end
-	return false
+	return false;
 end
 
-function GetDatabaseLocaleKey()
+function Locales:GetDatabaseLocaleKey()
 	for _, v in pairs(mainLocales) do
-		if v == locale then return MAIN_LOCALE_DB_KEY end
+		if v == currentLocale then return MAIN_LOCALE_DB_KEY end
 	end
-	return locale
+	return currentLocale;
 end
-
 
 ----------------------------------------------------------
--- Generated locales
+-- Generated localized strings
 ----------------------------------------------------------
 
 if (L) then

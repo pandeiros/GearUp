@@ -1,6 +1,6 @@
 -- #TODO Copyright here
 
-local L = AceLocale:NewLocale("GU", "enUS", true, true);
+local L = GU_AceLocale:NewLocale("GU", "enUS", true, true);
 
 if L then
 

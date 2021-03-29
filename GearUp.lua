@@ -7,9 +7,6 @@
 -- *                                                      *
 -- ********************************************************
 
--- TODO
--- * Some items are crafted in random quantity. Example: Coarse Dynamite creates 1-3 pieces. Need to check professions for that kind of items and fix data.
-
 local GU = _G.GU;
 
 local Data = GU.Data;
@@ -24,11 +21,10 @@ end
 
 function GU:Initialize()
     if (type(self.init) ~= "boolean" or not self.init) then
-        self.db = AceDB:New("GUDB", GU_DB_DEFAULTS, true);
-        self.devmode = false;
+        self.db = GU_AceDB:New("GUDB", GU_DB_DEFAULTS, true);
 
         Data:Initialize();
-        Data.Options.OptionsTable.args.profiles = AceDBOptions:GetOptionsTable(self.db)
+        Data.Options.OptionsTable.args.profiles = GU_AceDBOptions:GetOptionsTable(self.db)
     end
 
     self.init = true;

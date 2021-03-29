@@ -2,6 +2,7 @@
 
 local GU = _G.GU;
 local Style = GU.Style;
+local Misc = GU.Misc;
 
 local Colors = {};
 GU.Style.Colors = Colors;
@@ -23,53 +24,53 @@ local COLOR_SHADES = {
     ["Pink"]            = {"1C000E", "38001C", "55002A", "710038", "8D0046", "AA0055", "C60063", "E20071", "FF007F", "FF1C8D", "FF389B", "FF55AA", "FF71B8", "FF8DC6", "FFAAD4", "FFC6E2", "FFE2F0"},
 }
 
--- Color groups (from lighest to darkest)
+-- Color groups
 local COLOR_DATA = {
     ["Rarity"]      = {"9D9D9D", "FFFFFF", "1EFF00", "0070DD", "A335EE", "FF8000", "E6CC80", "00CCFF"},
     ["Class"]       = {
-        [CLASS_DEATHKNIGHT]   = "C41E3A",
-        [CLASS_DEMONHUNTER]   = "A330C9",
-        [CLASS_DRUID]         = "FF7C0A",
-        [CLASS_HUNTER]        = "AAD372",
-        [CLASS_MAGE]          = "3FC6EA",
-        [CLASS_MONK]          = "00FF96",
-        [CLASS_PALADIN]       = "F48CBA",
-        [CLASS_PRIEST]        = "FFFFFF",
-        [CLASS_ROGUE]         = "FFF468",
-        [CLASS_SHAMAN]        = "0070DE",
-        [CLASS_WARLOCK]       = "8787ED",
-        [CLASS_WARRIOR]       = "C69B6D",
+        [GU_CLASS_DEATHKNIGHT]   = "C41E3A",
+        [GU_CLASS_DEMONHUNTER]   = "A330C9",
+        [GU_CLASS_DRUID]         = "FF7C0A",
+        [GU_CLASS_HUNTER]        = "AAD372",
+        [GU_CLASS_MAGE]          = "3FC6EA",
+        [GU_CLASS_MONK]          = "00FF96",
+        [GU_CLASS_PALADIN]       = "F48CBA",
+        [GU_CLASS_PRIEST]        = "FFFFFF",
+        [GU_CLASS_ROGUE]         = "FFF468",
+        [GU_CLASS_SHAMAN]        = "0070DE",
+        [GU_CLASS_WARLOCK]       = "8787ED",
+        [GU_CLASS_WARRIOR]       = "C69B6D",
     },   
 }
 
-COLOR_BLACK     = "000000";
-COLOR_WHITE     = "FFFFFF";
-COLOR_RED       = "FF0000";
-COLOR_ORANGE    = "FF7F00";
-COLOR_YELLOW    = "FFFF00";
-COLOR_LIME      = "7FFF00";
-COLOR_GREEN     = "00FF00";
-COLOR_LGREEN    = "00FF7F";
-COLOR_TURQUOISE = "00FFFF";
-COLOR_AZURE     = "007FFF";
-COLOR_BLUE      = "0000FF";
-COLOR_PURPLE    = "7F00FF";
-COLOR_FUCHSIA   = "FF00FF";
-COLOR_PINK      = "FF007F";
+GU_COLOR_BLACK     = "000000";
+GU_COLOR_WHITE     = "FFFFFF";
+GU_COLOR_RED       = "FF0000";
+GU_COLOR_ORANGE    = "FF7F00";
+GU_COLOR_YELLOW    = "FFFF00";
+GU_COLOR_LIME      = "7FFF00";
+GU_COLOR_GREEN     = "00FF00";
+GU_COLOR_LGREEN    = "00FF7F";
+GU_COLOR_TURQUOISE = "00FFFF";
+GU_COLOR_AZURE     = "007FFF";
+GU_COLOR_BLUE      = "0000FF";
+GU_COLOR_PURPLE    = "7F00FF";
+GU_COLOR_FUCHSIA   = "FF00FF";
+GU_COLOR_PINK      = "FF007F";
 
 -- Styles
 local DEFAULT_STYLE = {
-    primaryAccentColor      = COLOR_SHADES["Orange"][9],
+    primaryAccentColor      = COLOR_SHADES["Orange"][11],
     secondaryAccentColor    = COLOR_SHADES["Blue"][8],
     primaryFontColor        = COLOR_SHADES["Gray"][16],
     secondaryFontColor      = COLOR_SHADES["Gray"][15],
     backgroundColor         = COLOR_SHADES["Gray"][3],
 
-    displayColor            = COLOR_SHADES["Orange"][9],
+    displayColor            = COLOR_SHADES["Orange"][11],
     verboseColor            = COLOR_SHADES["Gray"][10],
-    logColor                = COLOR_WHITE,
-    warningColor            = COLOR_YELLOW,
-    errorColor              = COLOR_RED,
+    logColor                = GU_COLOR_WHITE,
+    warningColor            = GU_COLOR_YELLOW,
+    errorColor              = GU_COLOR_RED,
 }
 
 -- Operation quality.
@@ -130,9 +131,9 @@ function Colors:GetColorAlpha(hexColor, alphaValue)
         return "FF" .. hexColor;
     end
 
-    alphaValue = Clamp(alphaValue, 0.0, 1.0);
+    alphaValue = Misc:Clamp(alphaValue, 0.0, 1.0);
     alphaValue = math.floor(255 * alphaValue);
-    hexValue = DECToHEX(alphaValue);
+    hexValue = Misc:DECToHEX(alphaValue);
     hexValue = hexValue:gsub("0x","");
 
     return hexValue .. hexColor;

@@ -1,4 +1,4 @@
-## Interface: 11305
+## Interface: 11306
 ## Author: Pandeiros
 ## Version: 1.0
 ## SavedVariables: GUMinimapIcon, GUDB
@@ -32,7 +32,7 @@
 # ## Notes-zhCN: Item search engine and gear ranking addon.
 # ## Notes-zhTW: Item search engine and gear ranking addon.
 
-## X-Min-Interface: 11304
+## X-Min-Interface: 11306
 ## X-Credits:
 ## X-Category: Bags & Inventory
 ## X-License: GPL v3
@@ -60,6 +60,7 @@ scripts/Async.lua
 
 scripts/Data.lua
 scripts/Data_Scanning.lua
+scripts/Data_Parsing.lua
 
 scripts/Functions.lua
 scripts/Frames.lua

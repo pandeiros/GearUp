@@ -15,18 +15,18 @@ local GU_PREFIX = "<GU> ";
 -- Print to default tab. 
 function Logger:Print(...)
     local style = GU.db.profile.style;
-    AceConsole:Print(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, ...));
+    GU_AceConsole:Print(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, ...));
 end
 
 -- Print formatted text to default tab.
 function Logger:Printf(format, ...)
     local style = GU.db.profile.style;
-    AceConsole:Printf(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, format), ...);
+    GU_AceConsole:Printf(DEFAULT_CHAT_FRAME, Colors:GetColorStr(style.logColor, format), ...);
 end
 
 -- Print formatted text to default tab with custom color.
 function Logger:Printfc(color, format, ...)
-    AceConsole:Printf(DEFAULT_CHAT_FRAME, Colors:GetColorStr(color, format), ...);
+    GU_AceConsole:Printf(DEFAULT_CHAT_FRAME, Colors:GetColorStr(color, format), ...);
 end
 
 -- Verbose logging. Only available with dev mode enabled.
@@ -35,21 +35,25 @@ function Logger:Verb(format, ...)
         return;
     end
 
+    format = GU_PREFIX .. format;
     local style = GU.db.profile.style;
     self:Printfc(style.verboseColor, format, ...);
 end
 
 function Logger:Log(format, ...)
+    format = GU_PREFIX .. format;
     self:Printf(format, ...);
 end
 
 function Logger:Warn(format, ...)
     local style = GU.db.profile.style;
+    format = GU_PREFIX .. format;
     self:Printfc(style.warningColor, format, ...);
 end
 
 function Logger:Err(format, ...)
     local style = GU.db.profile.style;
+    format = GU_PREFIX .. format;
     self:Printfc(style.errorColor, format, ...);
 end
 

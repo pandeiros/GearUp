@@ -1,7 +1,6 @@
 -- #TODO Copyright here
 
 local GU = _G.GU
-local Auctions = GU.Data.Auctions;
 local Logger = GU.Logger;
 
 function GU:PlayerLogin()
@@ -9,12 +8,12 @@ function GU:PlayerLogin()
 	self:PrintWelcomeMessage();
 end
 
-function GU:GetItemInfoReceived(itemID, success)
-	if not success then success = "" end;
-	if itemID ~= nil then
-		print(itemID .. ": " .. success);
-	end
-end
+-- function GU:GetItemInfoReceived(itemID, success)
+-- 	if not success then success = "" end;
+-- 	if itemID ~= nil then
+-- 		Logger:Verb(itemID .. ": " .. success);
+-- 	end
+-- end
 
 ---------------------------------------------------------
 

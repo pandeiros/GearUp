@@ -10,7 +10,7 @@ local Misc = GU.Misc;
 
 local Frames = {};
 local Tooltip = {};
-GU_MainFrame = AceGUI:Create("Frame");
+GU_MainFrame = GU_AceGUI:Create("Frame");
 
 GU.Frames = Frames;
 GU.Frames.Tooltip = Tooltip;
@@ -20,7 +20,7 @@ GU.Frames.MainFrame = GU_MainFrame;
 -- Main frame
 ----------------------------------------------------------
 
-AceGUI:Release(GU_MainFrame);
+GU_AceGUI:Release(GU_MainFrame);
 
 function GU_MainFrame:GetName()
     return "GU_MainFrame";
@@ -35,7 +35,7 @@ function GU_MainFrame:Draw()
 
     self:SetTitle(GU_ADDON_NAME);
     self:SetStatusText("");
-    self:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
+    self:SetCallback("OnClose", function(widget) GU_AceGUI:Release(widget) end);
     self:SetLayout("Fill");
 
     self:DrawTabs();
@@ -54,7 +54,7 @@ local function SelectGroup(container, event, group)
 end
 
 function GU_MainFrame:DrawTabs()
-    self.TabGroup = AceGUI:Create("TabGroup");
+    self.TabGroup = GU_AceGUI:Create("TabGroup");
     self.TabGroup:SetLayout("Flow");
     self.TabGroup:SetTabs({
         {text="Settings", value="SettingsTab"}, 
@@ -64,24 +64,24 @@ function GU_MainFrame:DrawTabs()
 end
 
 function GU_MainFrame:DrawSettingsTab(container)
-    local description = AceGUI:Create("Label");
+    local description = GU_AceGUI:Create("Label");
     description:SetText("This is Settings Tab");
     description:SetFullWidth(true);
     container:AddChild(description);
     
-    local button = AceGUI:Create("Button");
+    local button = GU_AceGUI:Create("Button");
     button:SetText("Button");
     button:SetWidth(200);
     container:AddChild(button);
 end
     
 function GU_MainFrame:DrawOtherTab(container)
-    local description = AceGUI:Create("Label");
+    local description = GU_AceGUI:Create("Label");
     description:SetText("This is Other Tab");
     description:SetFullWidth(true);
     container:AddChild(description);
     
-    local button = AceGUI:Create("Button");
+    local button = GU_AceGUI:Create("Button");
     button:SetText("Button");
     button:SetWidth(200);
     container:AddChild(button);
@@ -105,17 +105,17 @@ end)
 function Frames:Initialize()
     self.timeSinceOpened = 0;
     self.timeSinceLastUpdate = 0;
-    self.updateInterval = 0.1;
-    -- self.updateInterval = 0.0167;
+    -- self.updateInterval = 0.1;
+    self.updateInterval = 0.0167;
     self.count = 0;
+    self.taskSpeed = 1.0;
+    self.maxTasks = 100;
 end
 
 Frames:Initialize();
 
 function Frames:Tick(deltaTime)
-    -- Data:ScanItems();
-    -- local itemDB = GU.db.global.itemDB;
-    -- Logger:Verb(itemDB.processedIDs .. " -- " .. itemDB.deprecatedIDs .. " -- " .. #itemDB.invalidIDs);
+
 end
 
 function Frames:OnUpdate(timeElapsed)
@@ -134,15 +134,48 @@ function Frames:OnUpdate(timeElapsed)
         self.timeSinceLastUpdate = self.timeSinceLastUpdate - deltaTime;
     end
 
+    -- Dynamic task speed adjusting.
+    if (timeElapsed > 0) then
+        if (timeElapsed / self.updateInterval > 1.25 and self.taskSpeed > 0.0) then
+            self.taskSpeed = math.max(0.0, self.taskSpeed - 0.05);
+            Logger:Verb("Frames:OnUpdate Decreasing task speed to %1.1f", self.taskSpeed);
+        elseif (timeElapsed / self.updateInterval < 0.75 and self.taskSpeed < 1.0) then
+            self.taskSpeed = math.min(1.0, self.taskSpeed + 0.05);
+            Logger:Verb("Frames:OnUpdate Increasing task speed to %1.1f", self.taskSpeed);
+        end
+    else
+        self.taskSpeed = 0.0;
+    end   
+
     -- Task scheduling
-    for _ = 1,1 do
-        Async:ScheduleTask();
-        Data:ScanItems();
-    end
+    local taskCount = math.max(1, math.floor(self.maxTasks * self.taskSpeed));
+
+    -- TODO
+    -- Change this whole taks system to checking/getting info from objects if they have tasks to do.
+    -- Similar to "IsTickable" from UE4
+
+    -- for _ = 1,taskCount do
+    --     Data:DoTasks();
+    -- end
+    -- for k,v in pairs(self.tasks) do
+    --     if (type(v) == "function") then
+    --         for _ = 1,taskCount do
+    --             v();
+    --         end
+    --     end
+    -- end
 end
 
+-- function Frames:RegisterTask(name, task)
+--     self.tasks[name] = task;
+-- end
+
+-- function Frames:UnregisterTask(name)
+--     self.tasks[name] = nil;
+-- end
+
 function Frames:OpenMainFrame()
-    self.MainFrame = AceGUI:Create("Frame");
+    self.MainFrame = GU_AceGUI:Create("Frame");
     table.insert(UISpecialFrames, "GU_MainFrame");
     self.MainFrame:Draw();
 end
@@ -154,7 +187,7 @@ function Frames:CloseMainFrame()
 end
 
 function Frames:OpenConfigFrame()
-    -- self.ConfigFrame = AceGUI:Create("Frame");
+    -- self.ConfigFrame = GU_AceGUI:Create("Frame");
     -- table.insert(UISpecialFrames, "GU_ConfigFrame");
     -- self.ConfigFrame:Draw();
 end
@@ -174,7 +207,7 @@ function Tooltip:AddItemInfo(tooltip)
     local itemID = Misc:GetItemIDFromLink(link);
 
     if (link or itemID) then
-        Data:AddPendingItemToScan(itemID, link);
+        Data:AddPrioItemToScan(itemID, link);
     end
 
     if (link) then
@@ -206,61 +239,4 @@ function Tooltip:AddItemInfo(tooltip)
         -- print(text);
         return;
     end
-
-    -- local itemData = Data:PrepareTooltipData(itemID);
-
-    -- self:PrintItemData(itemData, 0);
-
-    local vendorPrice = Misc:GetItemVendorPrice(itemID);
-
-    local bShouldShowInfo = (vendorPrice > 0);
-    if (bShouldShowInfo) then
-        tooltip:AddLine(" ", Colors:HEXToRGB(style.primaryAccentColor));
-        tooltip:AddLine(GU_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
-        if (vendorPrice > 0) then
-            -- SetTooltipMoney(tooltip, vendorPrice, "STATIC", Colors:GetColorStr(style.vendorColor, "|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:"), "");
-            --tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Data:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.vendorColor));
-        end
-        -- TEST
-        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_01:0|t |TInterface\\Icons\\INV_Misc_Coin_02:16|t |TInterface\\Icons\\INV_Misc_Coin_03:16|t ", Colors:HEXToRGB(style.mainColor));
-        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_04:16|t |TInterface\\Icons\\INV_Misc_Coin_05:16|t |TInterface\\Icons\\INV_Misc_Coin_06:16|t ", Colors:HEXToRGB(style.mainColor));
-        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_07:16|t |TInterface\\Icons\\INV_Misc_Coin_08:16|t |TInterface\\Icons\\INV_Misc_Coin_09:16|t ", Colors:HEXToRGB(style.mainColor));
-        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_10:16|t |TInterface\\Icons\\INV_Misc_Coin_11:16|t |TInterface\\Icons\\INV_Misc_Coin_12:16|t ", Colors:HEXToRGB(style.mainColor));
-        -- tooltip:AddLine("|TInterface\\Icons\\INV_Misc_Coin_13:16|t |TInterface\\Icons\\INV_Misc_Coin_14:16|t |TInterface\\Icons\\INV_Misc_Coin_15:16|t ", Colors:HEXToRGB(style.mainColor));
-
-        -- tooltip:AddLine(Professions:GetProfessionIcon(0) .. Professions:GetProfessionIcon(1) .. Professions:GetProfessionIcon(2) .. Professions:GetProfessionIcon(3), Colors:HEXToRGB(COLOR_WHITE));
-        -- tooltip:AddLine(Professions:GetProfessionIcon(4) .. Professions:GetProfessionIcon(5) .. Professions:GetProfessionIcon(6) .. Professions:GetProfessionIcon(7), Colors:HEXToRGB(COLOR_WHITE));
-        -- tooltip:AddLine(Professions:GetProfessionIcon(8) .. Professions:GetProfessionIcon(9) .. Professions:GetProfessionIcon(10) .. Professions:GetProfessionIcon(11), Colors:HEXToRGB(COLOR_WHITE));
-
-        -- VENDOR
-        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tVendor for:  " .. Misc:GetMoneyValueWithTextures(vendorPrice), Colors:HEXToRGB(style.primaryAccentColor));
-        -- tooltip:AddLine("    Full stack:  " .. Data:GetMoneyValueWithTextures(vendorPrice * 20) .. " (20)", Colors:HEXToRGB(style.vendorColor));
-
-        -- AH
-        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tAuction for:  " .. Misc:GetMoneyValueWithTextures(21) .. Colors:GetColorStr(Style:GetOperationQualityColor(3), " (+300%)"), Colors:HEXToRGB(style.secondaryAccentColor));
-        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(20) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(1), Colors:HEXToRGB(style.auctionColor));
-        -- tooltip:AddLine("    Min Buyout:  " .. Data:GetMoneyValueWithTextures(22) .. "  Items:  ".. Colors:GetColorStr(COLOR_WHITE, "47") .. "  Auctions:  " .. Colors:GetColorStr(COLOR_WHITE, "26"), Colors:HEXToRGB(style.auctionColor));
-
-        -- CRAFT
-        tooltip:AddLine("|TInterface\\Moneyframe\\Arrow-Right-Disabled:0|tCraft:  " .. "Alchemy" .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Protection Potion") .. " and Auction for:  " .. Misc:GetMoneyValueWithTextures(250) .. Colors:GetColorStr(Style:GetOperationQualityColor(4), " (+500%)"), Colors:HEXToRGB(style.primaryAccentColor));
-        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(100) .. "  Cut:  ".. Data:GetMoneyValueWithTextures(12), Colors:HEXToRGB(style.craftColor));
-        -- tooltip:AddLine("    Profit:  " .. Data:GetMoneyValueWithTextures(30) .. " per " .. Colors:GetColorStr(Style:GetRarityColor(1), "Firefin Snapper"), Colors:HEXToRGB(style.craftColor));
-        -- tooltip:AddLine("    Requires:  " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. ", " .. Colors:GetColorStr(Style:GetRarityColor(1), " Small Flame Sac").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
-        -- tooltip:AddLine("        " .. Professions:GetProfessionIcon(0) .. " " .. Colors:GetColorStr(Style:GetRarityColor(1), "Fire Oil") .. " requires: " .. Colors:GetColorStr(Style:GetRarityColor(1), " Firefin Snapper [2]").. ", ".. Colors:GetColorStr(Style:GetRarityColor(1), " Empty Vial"), Colors:HEXToRGB(style.craftColor));
-        -- END TEST    
-    end
 end
-
--- function Tooltip:PrintItemData(itemData, indent)
---     if (not itemData.itemID) then
---         return;
---     end
-    
---     local itemName = GetItemInfo(itemData.itemID);
-
---     Logger:Printf("%s%s (%d):", string.rep(" ", indent * 4), itemName, itemData.itemID);
---     Logger:Printf("%s- Vendor price: %d, AH price: %d", string.rep(" ", indent * 4), itemData.vendorPrice, 123);
---     for k,v in pairs(itemData.reagentFor) do
---         self:PrintItemData(v, indent + 1);
---     end
--- end

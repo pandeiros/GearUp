@@ -32,6 +32,8 @@ end
 -- Items & Inventory functions
 ----------------------------------------------------------
 
+local MAX_LEVEL = 60;
+
 local COIN_TEXTURES = {
     "|TInterface\\Moneyframe\\UI-GoldIcon:0:0:4:0|t",
     "|TInterface\\Moneyframe\\UI-SilverIcon:0:0:4:0|t",
@@ -41,7 +43,7 @@ local COIN_TEXTURES = {
 -- coinType: 1 - gold, 2 - silver, 3 - copper
 function Misc:GetCoinTextureWithValue(value, coinType)
     if (value > 0) then
-        return Colors:GetColorStr(COLOR_WHITE, tostring(value)) .. COIN_TEXTURES[coinType] .. "  ";
+        return Colors:GetColorStr(GU_COLOR_WHITE, tostring(value)) .. COIN_TEXTURES[coinType] .. "  ";
     else
         return "";
     end
@@ -70,8 +72,12 @@ function Misc:GetItemIDFromLink(itemLink)
     return tonumber(ID);
 end
 
-function Misc:GenerateItemLinkFromID(itemID)
-	return string.format("|cffffffff|Hitem:%d::::::::60:::::::|h[Item link]|h|r", itemID);
+function Misc:GenerateSimpleItemLinkFromID(itemID)
+	return string.format("|cffffffff|Hitem:%d::::::::%d:::::::|h[Item link]|h|r", itemID, MAX_LEVEL);
+end
+
+function Misc:GenerateFullItemLink(itemID, rarity, name)
+	return string.format("|cff%s|Hitem:%d::::::::%d:::::::|h[%s]|h|r", Style:GetRarityColor(rarity), itemID, MAX_LEVEL, name);
 end
 
 function Misc:GetItemVendorPrice(itemIDOrLink)
@@ -114,12 +120,12 @@ end
 ----------------------------------------------------------
 
 -- Lua-style ternary operator.
-function IFTE(condition, if_true, if_false)
+function Misc:IFTE(condition, if_true, if_false)
     if condition then return if_true else return if_false end
 end
 
 -- Clamp
-function Clamp(value, min, max)
+function Misc:Clamp(value, min, max)
 	if (value > max) then
 		return max;
 	elseif (value < min) then
@@ -130,7 +136,7 @@ function Clamp(value, min, max)
 end
 
 -- Converts a decimal number to hexadecimal number.
-function DECToHEX(decNumber)
+function Misc:DECToHEX(decNumber)
 	local hexNumber = "0x";
 	local hex = "";
     while (decNumber > 0) do
@@ -148,16 +154,16 @@ function DECToHEX(decNumber)
     return hexNumber;
 end
 
-function Inc(value)
+function Misc:Inc(value)
 	value = value + 1;
 	return value;
 end
 
-function Dec(value)
+function Misc:Dec(value)
 	return value - 1;
 end
 
-function Length(t)
+function Misc:Length(t)
 	local length = 0;
 	if (type(t) == "table") then
 		for k,v in pairs(t) do
@@ -168,11 +174,19 @@ function Length(t)
 	return length;
 end
 
+function Misc:BoolToString(bool)
+	if (bool) then
+		return "true";
+	else
+		return "false";
+	end
+end
+
 ----------------------------------------------------------
 -- Objects/Tables
 ----------------------------------------------------------
 
-function CreateObject(objectOrName, ...)
+function Misc:CreateObject(objectOrName, ...)
     local object,name
 	local i=1
 	if type(objectorname)=="table" then
@@ -189,7 +203,7 @@ function CreateObject(objectOrName, ...)
     return object
 end
 
-function GetAllDataOld(t, prevData)
+function Misc:GetAllDataOld(t, prevData)
 	-- if prevData == nil, start empty, otherwise start with prevData
 	local data = prevData or {}
   
@@ -214,34 +228,7 @@ function GetAllDataOld(t, prevData)
 	return GetAllDataOld(index, data)
 end
 
-function PrintAllDataOld(t, prevData)
-	-- if prevData == nil, start empty, otherwise start with prevData
-	local data = prevData or {}
-	print("==========================");
-	
-	-- copy all the attributes from t
-	for k,v in pairs(t) do
-		print(tostring(k) .. " -> " .. tostring(v));
-		data[k] = data[k] or v
-	end
-  
-	-- get t's metatable, or exit if not existing
-	local mt = getmetatable(t)
-	if type(mt) ~='table' then
-		return data;
-	end
-  
-	-- get the __index from mt, or exit if not table
-	local index = mt.__index
-	if type(index) ~='table' then
-		return data;
-	end
-  
-	-- include the data from index into data, recursively, and return
-	return PrintAllDataOld(index, data)
-end
-
-function PrintAllProperties(t, prevData)
+function Misc:PrintAllProperties(t, prevData)
 	-- if prevData == nil, start empty, otherwise start with prevData
 	local data = prevData or {}
 	print("==========================");
@@ -270,7 +257,7 @@ function PrintAllProperties(t, prevData)
 	return PrintAllProperties(index, data)
 end
 
-function PrintAllData(object, prevData, keys, depth)
+function Misc:PrintAllData(object, prevData, keys, depth)
 	-- if prevData == nil, start empty, otherwise start with prevData
 	local data = prevData or {}
 	local keys = keys or {};
@@ -316,7 +303,7 @@ function PrintAllData(object, prevData, keys, depth)
 	end
 end
 
-function PrintProperty(property, value, depth)
+function Misc:PrintProperty(property, value, depth)
 	local str = " ";
 	for _ = 0, depth do
 		str = "-" .. str;
