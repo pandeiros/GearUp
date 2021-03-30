@@ -60,6 +60,10 @@ end
 
 function Misc:GetItemDataFromLink(itemLink)
 	-- example: |cffffffff|Hitem:4592::::::::12:::::::|h[Longjaw Mud Snapper]|h|r
+	if (not itemLink) then
+		return;
+	end
+
 	local _, _, Color, Ltype, Id, Enchant, Gem1, Gem2, Gem3, Gem4,
     Suffix, Unique, LinkLvl, Name = string.find(itemLink,
 	"|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*):?(%d*):?(%-?%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
@@ -68,6 +72,10 @@ function Misc:GetItemDataFromLink(itemLink)
 end
 
 function Misc:GetItemIDFromLink(itemLink)
+	if (not itemLink) then
+		return;
+	end
+
 	local _, _, ID = self:GetItemDataFromLink(itemLink);
     return tonumber(ID);
 end
@@ -78,6 +86,15 @@ end
 
 function Misc:GenerateFullItemLink(itemID, rarity, name)
 	return string.format("|cff%s|Hitem:%d::::::::%d:::::::|h[%s]|h|r", Style:GetRarityColor(rarity), itemID, MAX_LEVEL, name);
+end
+
+function Misc:GetPrintableItemLink(itemLink)
+	if (not itemLink) then
+		return "invalid";
+	end
+
+	local printable = gsub(itemLink, "\124", "\124\124");
+	return printable;
 end
 
 function Misc:GetItemVendorPrice(itemIDOrLink)
@@ -180,6 +197,18 @@ function Misc:BoolToString(bool)
 	else
 		return "false";
 	end
+end
+
+function Misc:Contains(t, item)
+	if (type(t) == "table") then
+		for k,v in pairs(t) do
+			if (v == item) then
+				return true;
+			end
+		end
+	end
+
+	return false;
 end
 
 ----------------------------------------------------------

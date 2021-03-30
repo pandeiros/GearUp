@@ -17,19 +17,46 @@ GU_DB_DEFAULTS = {
     }
 }
 
-GU_ITEM_STATUS_PENDING      = 0;    -- Data for this item cannot yet be obtained (probably because WoW API limits).
+GU_ITEM_STATUS_PENDING      = 0;    -- Data for this item cannot yet be obtained (probably because of WoW API limits).
 GU_ITEM_STATUS_INVALID      = 1;    -- There is no item for this ID (this can be determined when deprecated + scanned == MAX_ITEM_COUNT)
 GU_ITEM_STATUS_DEPRECATED   = 2;    -- Item's name suggest it's an old or deprecated item and no longer visible in game.
 GU_ITEM_STATUS_SCANNED      = 3;    -- Item's data was obtaing from WoW API and its tooltip stored.
 GU_ITEM_STATUS_PARSED       = 4;    -- Item's tooltip is fully parsed and ready for export.
 
 function Data:Initialize()
+    self.lastIDScanned = 1;
+    self.prioIDList = {};
+
     if (not GU.db.global.scanDB) then
         self:ResetScanningDatabase();
     end
 
     if (not GU.db.global.itemDB) then
         self:ResetItemDatabase();
+    end
+
+    local scanDB = GU.db.global.scanDB;
+    for k, v in pairs(scanDB.status[Locales:GetDatabaseLocaleKey()]) do
+        if (k >= self:GetMaxItemID()) then
+            scanDB.status[Locales:GetDatabaseLocaleKey()][k] = nil;
+        end
+    end
+
+end
+
+function Data:HasTasks()
+    local scanDB = GU.db.global.scanDB
+
+    if (scanDB.scanEnabled) then
+        return true;
+    end
+
+    return false;
+end
+
+function Data:DoTasks(taskCount)
+    for _ = 1,taskCount do
+        self:ScanItems();
     end
 end
 
@@ -53,10 +80,6 @@ end
 
 function Data:ResetScanningDatabase()
     GU.db.global.scanDB = {};         -- Contains scanned and parsed info about items (developers only).
-
-    self.lastIDScanned = 1;
-    -- self.LastPendingID = 0;
-    self.prioIDList = {};
 
     local scanDB = GU.db.global.scanDB
 
@@ -105,6 +128,9 @@ function Data:ResetScanningDatabase()
     scanDB.status = {};
     scanDB.status[MAIN_LOCALE_DB_KEY] = {};
 
+    -- Maps item ID of a deprecated item to its name. This is only for debugging purposes.
+    scanDB.deprecated = {};
+
     -- Maps set name to set details (items, bonuses etc.)
     -- Structure (enUS):
     -- setName = {
@@ -134,7 +160,7 @@ function Data:CreateLocalizedItemStructures(locale)
 end
 
 function Data:CreateLocalizedScanningStructures(locale)
-    local scanDB = GU.db.global.scanDB
+    local scanDB = GU.db.global.scanDB;
 
     if (Locales:IsSupportingLocale(locale)) then
         scanDB.tooltips[locale] = {};
@@ -144,6 +170,40 @@ function Data:CreateLocalizedScanningStructures(locale)
     else 
         Logger:Err("Data:CreateLocalizedScanningStructures Locale %s is not supported.", locale);
     end
+end
+
+function Data:MarkItemIDAsDeprecated(itemID, itemName)
+    local scanDB = GU.db.global.scanDB;
+
+    if (type(itemID) ~= "number") then
+        return;
+    end
+
+    scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_DEPRECATED;
+    scanDB.items[Locales:GetDatabaseLocaleKey()][itemID] = nil;
+    scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] = nil;
+    scanDB.deprecated[itemID] = itemName;
+
+    itemName = itemName or "UNKNOWN";
+    Logger:Verb("Marking %s (ID: %d) as deprecated. Removing associated data.", itemName, itemID);
+end
+
+function Data:RestoreDeprecatedItem(itemID)
+    local scanDB = GU.db.global.scanDB;
+
+    if (type(itemID) ~= "number") then
+        return;
+    end
+
+    local itemName = scanDB.deprecated[itemID];
+
+    if (scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] == GU_ITEM_STATUS_DEPRECATED) then
+        scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_PENDING;
+        scanDB.deprecated[itemID] = nil;
+    end
+
+    Logger:Verb("Marking %s (ID: %d) as pending.", itemName, itemID);
+    self:AddPrioItemToScan(itemID);
 end
 
 function Data:PrintDatabaseStats()
@@ -160,6 +220,16 @@ function Data:PrintDatabaseStats()
     Logger:Log("- Remaining items: %d", remaining);
 end
 
+function Data:GetItemStatusAsString(status)
+    if (status == GU_ITEM_STATUS_PENDING) then return "Pending"; end
+    if (status == GU_ITEM_STATUS_INVALID) then return "Invalid"; end
+    if (status == GU_ITEM_STATUS_DEPRECATED) then return "Deprecated"; end
+    if (status == GU_ITEM_STATUS_SCANNED) then return "Scanned"; end
+    if (status == GU_ITEM_STATUS_PARSED) then return "Parsed"; end
+
+    return "unknown";
+end
+
 -- Debug purposes only.
 function Data:PrintDatabase()
     local scanDB = GU.db.global.scanDB;
@@ -169,9 +239,31 @@ end
 function Data:PrintAllItemLinks()
     local scanDB = GU.db.global.scanDB;
 
-    -- Logger:Display("|cffff00ff|Hitem:19019:911:::::1741::60:::::::|h[Thunderfury, Blessed Blade of the Windseeker]|h|r");
-    -- |cff9d9d9d|Hitem:3299::::::::20:257::::::|h[Fractured Canine]|h|r
     for k,v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
         Logger:Display("%d -> %s", k, Misc:GenerateFullItemLink(k, v.rarity, v.name));
+    end
+end
+
+function Data:PrintItemInfo(id)
+    local scanDB = GU.db.global.scanDB;
+    if (scanDB.items[Locales:GetDatabaseLocaleKey()][id] ~= nil) then
+        local item = scanDB.items[Locales:GetDatabaseLocaleKey()][id];
+        Logger:Display("%s (ID: %d)",  item.name, id);
+        Logger:Display("%s", Misc:GenerateFullItemLink(id, item.rarity, item.name));
+        Logger:Display("- Status: %s", self:GetItemStatusAsString(scanDB.status[Locales:GetDatabaseLocaleKey()][id]));
+        Logger:Display("- Type/Subtype: %s/%s", item.type, item.subtype);
+         
+        if (scanDB.tooltips[Locales:GetDatabaseLocaleKey()][id]) then
+            local tooltip = scanDB.tooltips[Locales:GetDatabaseLocaleKey()][id];
+            if (tooltip == nil or tooltip == "") then
+                Logger:Display("- Tooltip: empty");
+            else
+                Logger:Display("- Tooltip:\n%s", tooltip);
+            end
+        end
+    elseif (scanDB.status[Locales:GetDatabaseLocaleKey()][id] == GU_ITEM_STATUS_DEPRECATED) then
+        Logger:Display("%s (ID: %d) is deprecated", scanDB.deprecated[id], id);
+    else
+        Logger:Display("No data for ID: %d (status: %s)", id, self:GetItemStatusAsString(scanDB.status[Locales:GetDatabaseLocaleKey()][id]));
     end
 end

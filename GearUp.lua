@@ -21,11 +21,15 @@ end
 
 function GU:Initialize()
     if (type(self.init) ~= "boolean" or not self.init) then
-        self.db = GU_AceDB:New("GUDB", GU_DB_DEFAULTS, true);
-
-        Data:Initialize();
-        Data.Options.OptionsTable.args.profiles = GU_AceDBOptions:GetOptionsTable(self.db)
+        self:InitializeDB();
     end
 
     self.init = true;
+end
+
+function GU:InitializeDB()
+    self.db = GU_AceDB:New("GUDB", GU_DB_DEFAULTS, true);
+
+    Data:Initialize();
+    Data.Options.OptionsTable.args.profiles = GU_AceDBOptions:GetOptionsTable(self.db)
 end

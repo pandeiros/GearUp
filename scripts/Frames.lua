@@ -105,8 +105,8 @@ end)
 function Frames:Initialize()
     self.timeSinceOpened = 0;
     self.timeSinceLastUpdate = 0;
-    -- self.updateInterval = 0.1;
     self.updateInterval = 0.0167;
+
     self.count = 0;
     self.taskSpeed = 1.0;
     self.maxTasks = 100;
@@ -138,10 +138,10 @@ function Frames:OnUpdate(timeElapsed)
     if (timeElapsed > 0) then
         if (timeElapsed / self.updateInterval > 1.25 and self.taskSpeed > 0.0) then
             self.taskSpeed = math.max(0.0, self.taskSpeed - 0.05);
-            Logger:Verb("Frames:OnUpdate Decreasing task speed to %1.1f", self.taskSpeed);
+            -- Logger:Verb("Frames:OnUpdate Decreasing task speed to %1.2f", self.taskSpeed);
         elseif (timeElapsed / self.updateInterval < 0.75 and self.taskSpeed < 1.0) then
             self.taskSpeed = math.min(1.0, self.taskSpeed + 0.05);
-            Logger:Verb("Frames:OnUpdate Increasing task speed to %1.1f", self.taskSpeed);
+            -- Logger:Verb("Frames:OnUpdate Increasing task speed to %1.2f", self.taskSpeed);
         end
     else
         self.taskSpeed = 0.0;
@@ -150,29 +150,10 @@ function Frames:OnUpdate(timeElapsed)
     -- Task scheduling
     local taskCount = math.max(1, math.floor(self.maxTasks * self.taskSpeed));
 
-    -- TODO
-    -- Change this whole taks system to checking/getting info from objects if they have tasks to do.
-    -- Similar to "IsTickable" from UE4
-
-    -- for _ = 1,taskCount do
-    --     Data:DoTasks();
-    -- end
-    -- for k,v in pairs(self.tasks) do
-    --     if (type(v) == "function") then
-    --         for _ = 1,taskCount do
-    --             v();
-    --         end
-    --     end
-    -- end
+    if (Data:HasTasks()) then
+        Data:DoTasks(taskCount);
+    end
 end
-
--- function Frames:RegisterTask(name, task)
---     self.tasks[name] = task;
--- end
-
--- function Frames:UnregisterTask(name)
---     self.tasks[name] = nil;
--- end
 
 function Frames:OpenMainFrame()
     self.MainFrame = GU_AceGUI:Create("Frame");
@@ -212,7 +193,8 @@ function Tooltip:AddItemInfo(tooltip)
 
     if (link) then
         -- tooltip:AddLine(GU_ADDON_NAME, Colors:HEXToRGB(style.primaryAccentColor));
-        local s = string.sub(link, 1, 10) .. string.sub(link, 13, -1);
+        -- local s = string.sub(link, 1, 10) .. string.sub(link, 13, -1);
+
         -- tooltip:AddLine(s, Colors:HEXToRGB(style.primaryAccentColor));
         -- Logger:Display(s);
         -- Logger:Display(link);

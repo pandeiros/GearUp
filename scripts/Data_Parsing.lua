@@ -17,12 +17,16 @@ local L = GU_AceLocale:GetLocale("GU");
 local ParsingTooltip = CreateFrame("GameTooltip", "GUParsingTooltip", nil, "GameTooltipTemplate")
 ParsingTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
-function Data:GetTooltipText(link)
-    local ID = Misc:GetItemIDFromLink(link);
+function Data:GetTooltipText(itemLink)
+    local itemID = Misc:GetItemIDFromLink(itemLink);
+
+    if (not itemID or itemID < 0) then
+        return "invalid tooltip";
+    end
 
     -- Use SetHyperLink for specific item variation. Use SetItemID for generic item (i.e. to include <Random enchantment> property)
-    -- ParsingTooltip:SetHyperlink(link)
-    ParsingTooltip:SetItemByID(ID)
+    -- ParsingTooltip:SetHyperlink(itemLink)
+    ParsingTooltip:SetItemByID(itemID)
     
     -- Scan the tooltip:
     local tooltipText = "";

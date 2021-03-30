@@ -12,6 +12,8 @@ GU.Logger = Logger;
 
 local GU_PREFIX = "<GU> ";
 
+Logger.verboseLogEnabled = true;
+
 -- Print to default tab. 
 function Logger:Print(...)
     local style = GU.db.profile.style;
@@ -31,7 +33,7 @@ end
 
 -- Verbose logging. Only available with dev mode enabled.
 function Logger:Verb(format, ...)
-    if (not GU:GetDevModeEnabled()) then
+    if (not GU:GetDevModeEnabled() or not self.verboseLogEnabled) then
         return;
     end
 
@@ -62,4 +64,17 @@ function Logger:Display(format, ...)
     local style = GU.db.profile.style;
     format = GU_PREFIX .. format;
     self:Printfc(style.displayColor, format, ...);
+end
+
+function Logger:SetVerboseLogEnabled(val)
+    if (val) then
+        Logger:Log("Verbose logging enabled.");
+    else
+        Logger:Log("Verbose logging disabled.");
+    end
+    self.verboseLogEnabled = val;
+end
+
+function Logger:IsVerboseLogEnabled()
+    return self.verboseLogEnabled;
 end

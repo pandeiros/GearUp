@@ -47,7 +47,7 @@ local OptionsTable = {
             guiHidden = true,
             type = "toggle",
             name = "Enable/Disable Item Scan",
-            desc = "Enable/Disble item scanning and parsing",
+            desc = "Enable/Disable item scanning and parsing",
             set = "SetScanEnabled",
             get = "GetScanEnabled",
         },
@@ -68,6 +68,25 @@ local OptionsTable = {
             name = "DB Statistics",
             desc = "Print database stats",
             func = "DatabaseStats",
+        },
+
+        verbose = {
+            hidden = "GetDevModeOptionsHidden",
+            guiHidden = true,
+            type = "toggle",
+            name = "Enable/Disable Verbose Log",
+            desc = "Enable/Disable detailed logging.",
+            set = "SetVerboseLogEnabled",
+            get = "GetVerboseLogEnabled",
+        },
+
+        fixscan = {
+            hidden = "GetDevModeOptionsHidden",
+            guiHidden = true,
+            type = "execute",
+            name = "Fix scanned items",
+            desc = "Re-check already scanned items and delete deprecated/invalid ones.",
+            func = "FixScannedItems",
         }
     },
 }
@@ -103,6 +122,8 @@ function GU:ResetAllData(info)
     GUDB = nil;
     GUCharacterDB = nil;
 
+    self:InitializeDB();
+
     Data:ResetDatabase();
 end
 
@@ -114,9 +135,11 @@ end
 
 -- Test
 function GU:TestCommand(info)
-    Data:PrintAllItemLinks();
-    -- Logger:Display("|cffff00ff|Hitem:6337::::::1179::60:::::::|h[Infantry Leggings]|h|r");
-    -- Logger:Display("|cffff00ff|Hitem:6337::::::::60:::::::|h[Infantry Leggings]|h|r");
+    -- Data:PrintAllItemLinks();
+    -- Data:PrintDeprecatedItems();
+    -- Data:RestoreDeprecatedItems();
+    -- Data:FixDeprecatedNames();
+    Data:AddAllDeprecatedIDs();
 end
 
 -- Scan
@@ -146,4 +169,28 @@ function GU:DatabaseStats(info)
     end
 
     Data:PrintDatabaseStats();
+end
+
+-- Verbose log
+function GU:SetVerboseLogEnabled(info, val)
+    if (not self:GetDevModeEnabled()) then
+        self:PrintNoAccessError("Set Verbose Log Enabled");
+        return
+    end
+
+    Logger:SetVerboseLogEnabled(val);
+end
+
+function GU:GetVerboseLogEnabled(info)
+    return Logger:IsVerboseLogEnabled();
+end
+
+-- Scan fixing
+function GU:FixScannedItems(info)
+    if (not self:GetDevModeEnabled()) then
+        self:PrintNoAccessError("Fix Scanned Items");
+        return;
+    end
+
+    Data:FixItemTooltips();
 end
