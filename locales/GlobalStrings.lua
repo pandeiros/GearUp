@@ -2,6 +2,8 @@
 
 local L = GU_AceLocale:GetLocale("GU");
 
+if (not GU_DEV_MODE_ENABLED) then return; end
+
 ----------------------------------------------------------
 -- Item types
 -- Source https://wowwiki.fandom.com/wiki/ItemType
@@ -217,42 +219,53 @@ GU_PROPERTY_AGILITY = "Agility";
 GU_PROPERTY_INTELLECT = "Intellect";
 GU_PROPERTY_SPIRIT = "Spirit";
 
-GU_PROPERTY_LEVEL_REQUIRED = "Level Required";
-GU_PROPERTY_SOULBOUND = "Soulbound";
+GU_PROPERTY_LEVEL_REQUIRED = "Requires Level";
+GU_PROPERTY_DURABILITY = "Durability";
+
+GU_PROPERTY_SOULBOUND = "Soulbound";            -- TODO: potentially not used.
 GU_PROPERTY_BOP = "Binds when picked up";
 GU_PROPERTY_BOE = "Binds when equipped";
 GU_PROPERTY_UNIQUE = "Unique";
+GU_PROPERTY_UNIQUE_EQUIPPED = "Unique-Equipped";
 
 ----------------------------------------------------------
 -- Regex
 ----------------------------------------------------------
 
-GU_REGEX_REMOVE_EDGE_SPACES = "%s*(.*)%s*";
+function GetExactRegexString(pattern)
+    return "^" .. pattern .. "$";
+end
+
+GU_REGEX_REMOVE_EDGE_SPACES = GetExactRegexString("%s*(.*)%s*");
 
 if L then
 
-GU_REGEX_SOULBOUND = L["PROPERTY_SOULBOUND"];
-GU_REGEX_BOP = L["PROPERTY_BOP"];
-GU_REGEX_BOE = L["PROPERTY_BOE"];
-GU_REGEX_UNIQUE = L["PROPERTY_UNIQUE"];
+GU_REGEX_SOULBOUND = GetExactRegexString(L["PROPERTY_SOULBOUND"]);
+GU_REGEX_BOP = GetExactRegexString(L["PROPERTY_BOP"]);
+GU_REGEX_BOE = GetExactRegexString(L["PROPERTY_BOE"]);
+GU_REGEX_UNIQUE = GetExactRegexString(L["PROPERTY_UNIQUE"]);
+GU_REGEX_UNIQUE_EQUIPPED = GetExactRegexString(L["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)");
 
-GU_REGEX_HEAD = L["REGEX_HEAD"] .. ".*";
-GU_REGEX_NECK = L["SLOT_NECK"];
-GU_REGEX_SHOULDER = L["SLOT_SHOULDER"] .. ".*";
-GU_REGEX_BACK = L["SLOT_BACK"];
-GU_REGEX_CHEST = L["SLOT_CHEST"] .. ".*";
-GU_REGEX_SHIRT = L["SLOT_SHIRT"];
-GU_REGEX_TABARD = L["SLOT_TABARD"];
-GU_REGEX_WRIST = L["SLOT_WRIST"] .. ".*";
-GU_REGEX_HANDS = L["SLOT_HANDS"] .. ".*";
-GU_REGEX_WAIST = L["SLOT_WAIST"] .. ".*";
-GU_REGEX_LEGS = L["SLOT_LEGS"] .. ".*";
-GU_REGEX_FEET = L["SLOT_FEET"] .. ".*";
-GU_REGEX_FINGER = L["SLOT_FINGER"];
-GU_REGEX_TRINKET = L["SLOT_TRINKET"];
-GU_REGEX_OFF_HAND = L["SLOT_OFF_HAND"] .. ".*";
-GU_REGEX_ONE_HAND = L["SLOT_ONE_HAND"] .. ".*";
-GU_REGEX_TWO_HAND = L["SLOT_TWO_HAND"] .. ".*";
-GU_REGEX_MAIN_HAND = L["SLOT_MAIN_HAND"] .. ".*"; 
+GU_REGEX_LEVEL_REQUIRED = GetExactRegexString(L["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)");
+GU_REGEX_DURABILITY = GetExactRegexString(L["PROPERTY_DURABILITY"] .. " (%d+)");
+
+GU_REGEX_HEAD = GetExactRegexString(L["REGEX_HEAD"] .. ".*");
+GU_REGEX_NECK = GetExactRegexString(L["SLOT_NECK"]);
+GU_REGEX_SHOULDER = GetExactRegexString(L["SLOT_SHOULDER"] .. ".*");
+GU_REGEX_BACK = GetExactRegexString(L["SLOT_BACK"]);
+GU_REGEX_CHEST = GetExactRegexString(L["SLOT_CHEST"] .. ".*");
+GU_REGEX_SHIRT = GetExactRegexString(L["SLOT_SHIRT"]);
+GU_REGEX_TABARD = GetExactRegexString(L["SLOT_TABARD"]);
+GU_REGEX_WRIST = GetExactRegexString(L["SLOT_WRIST"] .. ".*");
+GU_REGEX_HANDS = GetExactRegexString(L["SLOT_HANDS"] .. ".*");
+GU_REGEX_WAIST = GetExactRegexString(L["SLOT_WAIST"] .. ".*");
+GU_REGEX_LEGS = GetExactRegexString(L["SLOT_LEGS"] .. ".*");
+GU_REGEX_FEET = GetExactRegexString(L["SLOT_FEET"] .. ".*");
+GU_REGEX_FINGER = GetExactRegexString(L["SLOT_FINGER"]);
+GU_REGEX_TRINKET = GetExactRegexString(L["SLOT_TRINKET"]);
+GU_REGEX_OFF_HAND = GetExactRegexString(L["SLOT_OFF_HAND"] .. ".*");
+GU_REGEX_ONE_HAND = GetExactRegexString(L["SLOT_ONE_HAND"] .. ".*");
+GU_REGEX_TWO_HAND = GetExactRegexString(L["SLOT_TWO_HAND"] .. ".*");
+GU_REGEX_MAIN_HAND = GetExactRegexString(L["SLOT_MAIN_HAND"] .. ".*"); 
 
 end

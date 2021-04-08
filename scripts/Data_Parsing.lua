@@ -13,6 +13,26 @@ local Frames = GU.Frames;
 
 local L = GU_AceLocale:GetLocale("GU");
 
+function Data:SetParseEnabled(parseEnabled)
+    Logger:Log("%s %s.", "Item parse", Misc:IFTE(parseEnabled, "enabled", "disabled"));
+    local scanDB = GU.db.global.scanDB;
+    scanDB.parseEnabled = parseEnabled;
+end
+
+function Data:IsParseEnabled()
+    local scanDB = GU.db.global.scanDB;
+    return scanDB.parseEnabled;
+end
+
+function Data:WasParsed(itemID)
+    local scanDB = GU.db.global.scanDB;
+    if (scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] ~= nil and scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] == GU_ITEM_STATUS_PARSED) then
+        return true;
+    end
+
+    return false;
+end
+
 -- Create the tooltip for parsing.
 local ParsingTooltip = CreateFrame("GameTooltip", "GUParsingTooltip", nil, "GameTooltipTemplate")
 ParsingTooltip:SetOwner(UIParent, "ANCHOR_NONE")
@@ -21,114 +41,151 @@ function Data:GetTooltipText(itemLink)
     local itemID = Misc:GetItemIDFromLink(itemLink);
 
     if (not itemID or itemID < 0) then
-        return "invalid tooltip";
+        return "invalid";
     end
 
     -- Use SetHyperLink for specific item variation. Use SetItemID for generic item (i.e. to include <Random enchantment> property)
     -- ParsingTooltip:SetHyperlink(itemLink)
     ParsingTooltip:SetItemByID(itemID)
+
+    local name = _G["GUParsingTooltipTextLeft1"]:GetText();
+    if (not name or name == "") then
+        return "invalid";
+    end
     
     -- Scan the tooltip:
     local tooltipText = "";
     for i = 2, ParsingTooltip:NumLines() do -- Line 1 is always the name so you can skip it.
         local left = _G["GUParsingTooltipTextLeft"..i]:GetText()
         local right = _G["GUParsingTooltipTextRight"..i]:GetText()
+
+        local line = "";
         if left and left ~= "" then
-            tooltipText = tooltipText .. left;
+            line = line .. left;
+        end
+        if right and right ~= "" then
+            line = line .. " " .. right;
         end
 
-        if right and right ~= "" then
-            tooltipText = tooltipText .. " " .. right .. "\n";
-        else
-            tooltipText = tooltipText .. "\n";
-        end
+        tooltipText = tooltipText .. line .. "\n";
     end
 
     return tooltipText;
 end
 
-function Data:ProcessItemName(id, itemName)
-    local itemDB = GU.db.global.itemDB;
+function Data:GetItemIDToParse()
+    local scanDB = GU.db.global.scanDB;
+    local currentID = (self.lastIDParsed + 1) % self:GetMaxItemID();
 
-    words = {};
-    for w in itemName:gmatch("%S+") do table.insert(words, w) end
-
-    for i = 1, #words do
-        if (not itemDB.nameMap[words[i]]) then
-            itemDB.nameMap[words[i]] = {};
+    while (currentID ~= self.lastIDParsed) do
+        if (currentID ~= 0 and scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] ~= nil) then
+            if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_SCANNED) then
+                return currentID;
+            end
         end
 
-        table.insert(itemDB.nameMap[words[i]], id);
+        currentID = (currentID + 1) % self:GetMaxItemID();
+    end
+
+    return nil;
+end
+
+function Data:ParseItems()
+    local scanDB = GU.db.global.scanDB;
+    if (not scanDB.parseEnabled) then
+        return
+    end
+    
+    local itemID = self:GetItemIDToParse();
+    if (itemID ~= nil) then
+        self:ParseItem(itemID);
+    else
+        Logger:Log("End of parse.");
+        self:SetParseEnabled(false);
+    end  
+end
+
+function Data:ParseItem(itemID)
+    itemID = tonumber(itemID);
+    if (itemID == nil or itemID <= 0 or Data:WasParsed(itemID)) then
+        return;
+    end
+
+    local scanDB = GU.db.global.scanDB;
+
+    self.lastIDParsed = itemID;
+
+    -- Make a temp item structure
+    self.tempParsedItem = Misc:DeepCopy(scanDB.items[Locales:GetDatabaseLocaleKey()][itemID]);
+
+    -- Parse tooltip lines
+    local result = self:ParseItemTooltip(itemID);
+
+    -- If every line was parsed correctly, add item to database.
+    if (result) then
+        self:PrintItemInfo(self.tempParsedItem, itemID);
+        self:SetParseEnabled(false); -- temporary
+    -- If not, delete temp item, stop parsing and print where error was found and why.
+    else
+        self.tempParsedItem = nil;
+        self:SetParseEnabled(false);
     end
 end
 
-function Data:ProcessItemRarity(id, itemRarity)
-    local itemDB = GU.db.global.itemDB;
-
-    if (not itemDB.rarityMap[Misc:GetRarityName(itemRarity)]) then
-        itemDB.rarityMap[Misc:GetRarityName(itemRarity)] = {};
-    end
-
-    table.insert(itemDB.rarityMap[Misc:GetRarityName(itemRarity)], id);
-end
-
-function Data:ProcessItemType(id, itemType)
-    local itemDB = GU.db.global.itemDB;
-
-    if (not itemDB.typeMap[itemType]) then
-        itemDB.typeMap[itemType] = {};
-    end
-
-    table.insert(itemDB.typeMap[itemType], id);
-end
-
-function Data:ProcessItemSubtype(id, itemSubtype)
-    local itemDB = GU.db.global.itemDB;
-
-    if (not itemDB.subtypeMap[itemSubtype]) then
-        itemDB.subtypeMap[itemSubtype] = {};
-    end
-
-    table.insert(itemDB.subtypeMap[itemSubtype], id);
-end
-
-function Data:ParseItemTooltip(id, itemType, itemSubtype, tooltipText)
+function Data:ParseItemTooltip(itemID, itemType, itemSubtype, tooltipText)
     -- Split the text into lines.
     lines = {}
     for s in tooltipText:gmatch("[^\r\n]+") do
         table.insert(lines, s)
     end
 
-    -- Create new property entry for this item.
-    local itemDB = GU.db.global.itemDB;
-    if (not itemDB.propertyMap[id]) then
-        itemDB.propertyMap[id] = {};
+    -- Parse each line and stop if error occured.
+    for i = 1, #lines do
+        local result = self:ParseItemTooltipLine(itemID, lines[i]);
+        if (not result) then
+            return false;
+        end
     end
 
-    for i = 1, #lines do
-        self:ParseItemTooltipLine(id, itemType, itemSubtype, lines[i]);
-    end
+    return true;
 end
 
-function Data:ParseItemTooltipLine(id, itemType, itemSubtype, tooltipLine)
+function Data:ParseItemTooltipLine(id, tooltipLine)
     local itemDB = GU.db.global.itemDB;
 
-    tooltipLine = tooltipLine:match(REGEX_REMOVE_EDGE_SPACES);
+    tooltipLine = tooltipLine:match(GU_REGEX_REMOVE_EDGE_SPACES);
     if (string.len(tooltipLine) == 0) then
-        return;
+        return true;
     end
 
     if (not L) then
-        return;
+        Logger:Err("Data:ParseItemTooltipLine Locale table 'L' is invalid.");
+        return false;
     end
 
-    if (tooltipLine:find(REGEX_SOULBOUND)) then
-        -- do nothing
-    elseif (tooltipLine:find(REGEX_UNIQUE)) then
-    elseif (tooltipLine:find(REGEX_BOP)) then
-    elseif (tooltipLine:find(REGEX_BOE)) then
+    -- Check binding and uniqueness.
+    if (tooltipLine:find(GU_REGEX_SOULBOUND)) then
+        return true;    -- do nothing
+    elseif (tooltipLine:find(GU_REGEX_UNIQUE)) then
+        self:AddItemProperty(GU_PROPERTY_UNIQUE, true);
+        return true;
+    elseif (tooltipLine:find(GU_REGEX_UNIQUE_EQUIPPED)) then
+        local uniqueEquipped = tooltipLine:match(GU_REGEX_UNIQUE_EQUIPPED);
+        self:AddItemProperty(GU_PROPERTY_UNIQUE_EQUIPPED, uniqueEquipped);
+        return true;
+    elseif (tooltipLine:find(GU_REGEX_BOP)) then
+        self:AddItemProperty(GU_PROPERTY_BOP, true);
+        return true;
+    elseif (tooltipLine:find(GU_REGEX_BOE)) then
+        self:AddItemProperty(GU_PROPERTY_BOE, true);
+        return true;
     end
 
+    -- Check common properties (level required, durability etc.)
+    local levelRequired = tooltipLine:match(GU_REGEX_LEVEL_REQUIRED);
+
+    local itemType = self.tempParsedItem.type;
+    local itemSubtype = self.tempParsedItem.subtype;
 
     if (tooltipLine:find(REGEX_SOULBOUND) or tooltipLine:find(REGEX_BOP) or tooltipLine:find(REGEX_BOE)) then
         -- do nothing...
@@ -261,8 +318,6 @@ end
 function Data:ProcessItemTooltipLineUse(id, tooltipLine)
 end
 
-function Data:AddItemProperty(id, propertyKey, propertyValue)
-    -- local itemDB = GU.db.global.itemDB;
-    -- itemDB.propertyMap[id][propertyKey] = propertyValue;
-    -- Logger:Verb("[" .. id .. "] - " .. propertyKey .. ": " .. propertyValue);
+function Data:AddItemProperty(propertyKey, propertyValue)
+    self.tempParsedItem.properties[propertyKey] = propertyValue;
 end

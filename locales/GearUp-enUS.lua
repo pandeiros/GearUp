@@ -219,10 +219,13 @@ L["PROPERTY_AGILITY"] = "Agility";
 L["PROPERTY_INTELLECT"] = "Intellect";
 L["PROPERTY_SPIRIT"] = "Spirit";
 
-L["PROPERTY_LEVEL_REQUIRED"] = "Level Required";
+L["PROPERTY_LEVEL_REQUIRED"] = "Requires Level";
+L["PROPERTY_DURABILITY"] = "Durability";
+
 L["PROPERTY_SOULBOUND"] = "Soulbound";
 L["PROPERTY_BOP"] = "Binds when picked up";
 L["PROPERTY_BOE"] = "Binds when equipped";
 L["PROPERTY_UNIQUE"] = "Unique";
+L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
 
 end

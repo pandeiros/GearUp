@@ -215,6 +215,21 @@ end
 -- Objects/Tables
 ----------------------------------------------------------
 
+function Misc:DeepCopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[self:DeepCopy(orig_key)] = self:DeepCopy(orig_value)
+        end
+        setmetatable(copy, self:DeepCopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 function Misc:CreateObject(objectOrName, ...)
     local object,name
 	local i=1
@@ -230,31 +245,6 @@ function Misc:CreateObject(objectOrName, ...)
     object.name = name
     
     return object
-end
-
-function Misc:GetAllDataOld(t, prevData)
-	-- if prevData == nil, start empty, otherwise start with prevData
-	local data = prevData or {}
-  
-	-- copy all the attributes from t
-	for k,v in pairs(t) do
-	  data[k] = data[k] or v
-	end
-  
-	-- get t's metatable, or exit if not existing
-	local mt = getmetatable(t)
-	if type(mt) ~='table' then
-		return data;
-	end
-  
-	-- get the __index from mt, or exit if not table
-	local index = mt.__index
-	if type(index) ~='table' then
-		return data;
-	end
-  
-	-- include the data from index into data, recursively, and return
-	return GetAllDataOld(index, data)
 end
 
 function Misc:PrintAllProperties(t, prevData)
@@ -312,7 +302,7 @@ function Misc:PrintAllData(object, prevData, keys, depth)
 	end
   
 	-- include the data from index into data, recursively, and return
-	PrintAllData(index, data, keys, depth + 1);
+	self:PrintAllData(index, data, keys, depth + 1);
 
 	-- printing time
 	if (depth == 0) then
@@ -320,13 +310,13 @@ function Misc:PrintAllData(object, prevData, keys, depth)
 
 		for i,k in ipairs(keys) do
 			if (type(data[k]) ~= "function") then 
-				PrintProperty(k, data[k], 0);
+				self:PrintProperty(k, data[k], 0);
 			end
 		end
 		-- print("========================");
 		for i,k in ipairs(keys) do
 			if (type(data[k]) == "function") then 
-				PrintProperty(k, data[k], 0);
+				self:PrintProperty(k, data[k], 0);
 			end
 		end
 	end
@@ -345,7 +335,7 @@ function Misc:PrintProperty(property, value, depth)
 	else
 		print(str .. tostring(property))
 		for k,v in pairs(value) do
-			PrintProperty(k, v, depth+1);
+			self:PrintProperty(k, v, depth+1);
 		end	
 	end
 end

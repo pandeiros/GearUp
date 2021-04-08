@@ -5,6 +5,7 @@ local GU = _G.GU;
 local Frames = GU.Frames;
 local Data = GU.Data;
 local Logger = GU.Logger;
+local Misc = GU.Misc;
 
 local Options = {};
 Data.Options = Options;
@@ -47,9 +48,19 @@ local OptionsTable = {
             guiHidden = true,
             type = "toggle",
             name = "Enable/Disable Item Scan",
-            desc = "Enable/Disable item scanning and parsing",
+            desc = "Enable/Disable item scanning",
             set = "SetScanEnabled",
             get = "GetScanEnabled",
+        },
+
+        parse = {
+            hidden = "GetDevModeOptionsHidden",
+            guiHidden = true,
+            type = "toggle",
+            name = "Enable/Disable Item Parse",
+            desc = "Enable/Disable item parsing",
+            set = "SetParseEnabled",
+            get = "GetParseEnabled",
         },
 
         scanreset = {
@@ -139,7 +150,13 @@ function GU:TestCommand(info)
     -- Data:PrintDeprecatedItems();
     -- Data:RestoreDeprecatedItems();
     -- Data:FixDeprecatedNames();
-    Data:AddAllDeprecatedIDs();
+    -- Data:AddAllDeprecatedIDs();
+    -- Data:RemoveVersionFromItems();
+    -- Data:SerializeTest();
+    Data:PrintItemInfoByID(19822);
+    -- print(Data:GetTooltipText(Misc:GenerateFullItemLink(21330, 4, "Conqueror's Spaulders")));
+    -- Data:DeleteAllItemTooltips();
+    Data:PrintTooltipStatus();
 end
 
 -- Scan
@@ -154,6 +171,20 @@ end
 
 function GU:GetScanEnabled(info)
     return Data:IsScanEnabled();
+end
+
+-- Parse
+function GU:SetParseEnabled(info, val)
+    if (not self:GetDevModeEnabled()) then
+        self:PrintNoAccessError("Set Parse Enabled");
+        return
+    end
+
+    Data:SetParseEnabled(val);
+end
+
+function GU:GetParseEnabled(info)
+    return Data:IsParseEnabled();
 end
 
 -- Reset database

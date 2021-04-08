@@ -85,7 +85,7 @@ function Data:GetItemIDToScan()
     end
 
     local scanDB = GU.db.global.scanDB;
-    local currentID = (self.lastIDScanned + 1) % MAX_ITEM_ID;
+    local currentID = (self.lastIDScanned + 1) % self:GetMaxItemID();
 
     while (currentID ~= self.lastIDScanned) do
         if (not scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] and currentID ~= 0) then
@@ -93,11 +93,12 @@ function Data:GetItemIDToScan()
             return currentID;
         end
 
-        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_PENDING and currentID ~= 0) then
+        -- if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_PENDING and currentID ~= 0) then  -- TODO TEMP SCANNING
+        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_SCANNED and currentID ~= 0) then
             return currentID;
         end
 
-        currentID = (currentID + 1) % MAX_ITEM_ID;
+        currentID = (currentID + 1) % self:GetMaxItemID();
     end
 
     return nil;
@@ -112,7 +113,8 @@ function Data:AddPrioItemToScan(itemID, itemLink)
         itemID = Misc:GetItemIDFromLink(itemLink);
     end
 
-    if (self:WasScanned(itemID) == false and not Misc:Contains(self.prioIDList, itemID)) then
+    -- if (self:WasScanned(itemID) == false and not Misc:Contains(self.prioIDList, itemID)) then    -- TODO TEMP SCANNING
+    if (Misc:Contains(self.prioIDList, itemID)) then
         Logger:Log("Adding prio item ID: %d", itemID);
         table.insert(self.prioIDList, itemID);
     end
@@ -125,6 +127,7 @@ function Data:ScanItems()
     end
     
     local itemID = self:GetItemIDToScan();
+
     if (itemID ~= nil) then
         self:ScanItem(itemID);
     else
@@ -143,16 +146,33 @@ function Data:ScanItem(itemID, itemLink)
         end
     end
 
-    if (itemID == nil or itemID < 0 or Data:WasScanned(itemID)) then
+    -- if (itemID == nil or itemID < 0 or Data:WasScanned(itemID)) then     -- TODO TEMP SCANNING
+    if (itemID == nil or itemID < 0) then
         return;
     end
 
     local scanDB = GU.db.global.scanDB;
 
+    -- itemID = 21330;
     self.lastIDScanned = itemID;
 
+    ---------------------   -- TODO TEMP SCANNING
+    if (scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] and scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] == GU_ITEM_STATUS_SCANNED) then
+        local scanItemsDB = scanDB.items[Locales:GetDatabaseLocaleKey()];
+        local tooltip, replaced = self:AddItemTooltip(itemID, Misc:GenerateFullItemLink(itemID, scanItemsDB[itemID].rarity, scanItemsDB[itemID].name));
+        if (not tooltip) then
+            Logger:Err("Data:ScanItem Invalid tooltip found for item %s (%d)", scanItemsDB[itemID].name, itemID);
+            self:SetScanEnabled(false);
+        elseif (replaced) then
+            Logger:Log("Fixed item for ID: %d", itemID);            
+        end
+        return;
+    end
+
+    ---------------------
+
     local itemLinkOrID = itemID or itemLink;
-    itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
+    local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
         itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(itemLinkOrID);
 
     if (itemName == nil) then
@@ -179,7 +199,7 @@ function Data:FixScannedItems()
         if (v == GU_ITEM_STATUS_SCANNED or v == GU_ITEM_STATUS_PARSED) then
             if (scanItemsDB[k] == nil 
                 or scanItemsDB[k] ~= nil and scanItemsDB[k].name ~= nil and not Data:ValidateItem(scanItemsDB[k].name, k)) then
-                Data:MarkItemIDAsDeprecated(k);
+                self:MarkItemIDAsDeprecated(k);
                 count = count + 1;
             end
         end
@@ -199,8 +219,10 @@ function Data:FixItemTooltips()
     for k,v in pairs(statusDB) do
         if (v == GU_ITEM_STATUS_SCANNED or v == GU_ITEM_STATUS_PARSED) then
             if (scanItemsDB[k] ~= nil) then
-                Data:AddItemTooltip(k, Misc:GenerateFullItemLink(k, scanItemsDB[k].rarity, scanItemsDB[k].name));
-                count = count + 1;
+                local tooltip, replaced = self:AddItemTooltip(k, Misc:GenerateFullItemLink(k, scanItemsDB[k].rarity, scanItemsDB[k].name));
+                if (tooltip ~= nil and replaced) then
+                    count = count + 1;
+                end
             end
         end
     end
@@ -407,9 +429,22 @@ end
 
 function Data:AddItemTooltip(itemID, itemLink)
     itemID = tonumber(itemID);
-    local scanDB = GU.db.global.scanDB;
 
-    scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] = self:GetTooltipText(itemLink);
+    local scanDB = GU.db.global.scanDB;
+    local tooltip = self:GetTooltipText(itemLink);
+
+    if (tooltip == nil or tooltip == "invalid") then
+        return nil, false;
+    end
+
+    if (not scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] or 
+            string.len(tooltip) > string.len(scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID])) then
+        self:MarkItemIDAsScanned(itemID);
+        scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] = tooltip;
+        return tooltip, true;
+    end
+
+    return tooltip, false;
 end
 
 function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLevel, itemMinLevel, 
@@ -417,7 +452,6 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
 
     if (Locales:IsCurrentLocaleMainLocale()) then
         local item = {
-            version = GU_ADDON_VERSION,
             name = itemName,
             rarity = itemRarity,
             itemLevel = itemLevel,
@@ -439,7 +473,6 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
         return item;
     else
         local item = {
-            version = GU_ADDON_VERSION,
             name = itemName,
             equipBonuses = {},
             useBonuses = {},
@@ -449,6 +482,9 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
         return item;
     end
 end
+
+----------------------------------------------------------
+-- Debug purposes only
 
 function Data:PrintDeprecatedItems()
     if (not self.depCount) then
@@ -493,3 +529,18 @@ function Data:PrintDeprecatedItems()
 
     Logger:SetVerboseLogEnabled(verb);
 end
+
+-- function Data:ProcessItemName(id, itemName)
+--     local itemDB = GU.db.global.itemDB;
+
+--     words = {};
+--     for w in itemName:gmatch("%S+") do table.insert(words, w) end
+
+--     for i = 1, #words do
+--         if (not itemDB.nameMap[words[i]]) then
+--             itemDB.nameMap[words[i]] = {};
+--         end
+
+--         table.insert(itemDB.nameMap[words[i]], id);
+--     end
+-- end
