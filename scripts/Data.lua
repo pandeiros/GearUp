@@ -50,8 +50,10 @@ function Data:InitProperties()
     scanDB.scanVersion = scanDB.scanVersion or GU_ADDON_VERSION;
 
     self.lastIDScanned = 0;
+    self.lastIDForTooltip = 0;
     self.lastIDParsed = 0;
-    self.prioIDList = {};
+    self.prioScanIDList = {};
+    self.prioTooltipIDList = {};
 end
 
 function Data:HasTasks()
@@ -183,82 +185,11 @@ function Data:CreateLocalizedScanningStructures(locale)
     end
 end
 
-function Data:MarkItemIDAsDeprecated(itemID, itemName)
-    local scanDB = GU.db.global.scanDB;
-
-    if (type(itemID) ~= "number") then
-        return;
-    end
-
-    scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_DEPRECATED;
-    scanDB.items[Locales:GetDatabaseLocaleKey()][itemID] = nil;
-    scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] = nil;
-    scanDB.deprecated[itemID] = itemName;
-
-    itemName = itemName or "UNKNOWN";
-    Logger:Verb("Marking %s (ID: %d) as deprecated. Removing associated data.", itemName, itemID);
-end
-
-function Data:MarkItemIDAsScanned(itemID)
-    local scanDB = GU.db.global.scanDB;
-
-    if (type(itemID) ~= "number") then
-        return;
-    end
-
-    local status = scanDB.status[Locales:GetDatabaseLocaleKey()][itemID];
-    if (status ~= GU_ITEM_STATUS_SCANNED) then
-        if (status == GU_ITEM_STATUS_DEPRECATED) then
-            scanDB.deprecated[itemID] = nil;
-        elseif (status == GU_ITEM_STATUS_PARSED) then
-            local item = scanDB.items[Locales:GetDatabaseLocaleKey()][itemID];
-            self:ResetParsedProperties(item);
-        end
-
-        scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_SCANNED;
-
-        Logger:Verb("Marking %s (ID: %d) as scanned.", scanDB.items[Locales:GetDatabaseLocaleKey()][itemID].name, itemID);
-    end
-end
-
-function Data:ResetParsedProperties(item)
-    local scanDB = GU.db.global.scanDB;
-
-    local set = item.set;
-    if (set and set ~= "") then
-        scanDB.sets[Locales:GetDatabaseLocaleKey()][set] = nil;
-    end
-
-    item.classes = {};
-    item.set = "";
-    item.properties = {};
-    item.equipBonuses = {};
-    item.useBonuses = {};
-    item.onHitBonuses = {};
-end
-
-function Data:RestoreDeprecatedItem(itemID)
-    local scanDB = GU.db.global.scanDB;
-
-    if (type(itemID) ~= "number") then
-        return;
-    end
-
-    local itemName = scanDB.deprecated[itemID];
-
-    if (scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] == GU_ITEM_STATUS_DEPRECATED) then
-        scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_PENDING;
-        scanDB.deprecated[itemID] = nil;
-    end
-
-    Logger:Verb("Marking %s (ID: %d) as pending.", itemName, itemID);
-    self:AddPrioItemToScan(itemID);
-end
-
 function Data:PrintDatabaseStats()
     local scanDB = GU.db.global.scanDB;
 
     local pending, invalid, deprecated, scanned, parsed, remaining = self:GetScanningStatus(Locales:GetDatabaseLocaleKey());
+    local invalidTooltips, emptyTooltips, incorrectTooltips, validTooltips = self:GetTooltipStatus();
 
     Logger:Log("Scanning enabled: %s", Misc:BoolToString(scanDB.scanEnabled));
     Logger:Log("Parsing enabled: %s", Misc:BoolToString(scanDB.parseEnabled));
@@ -268,6 +199,12 @@ function Data:PrintDatabaseStats()
     Logger:Log("- Scanned items: %d", scanned);
     Logger:Log("- Parsed items: %d", parsed);
     Logger:Log("- Remaining items: %d", remaining);
+    Logger:Log("");
+    Logger:Log("Tooltip info:");
+    Logger:Log("- Invalid tooltips: %d", invalidTooltips);
+    Logger:Log("- Empty tooltips: %d", emptyTooltips);
+    Logger:Log("- Incorrect tooltips: %d", incorrectTooltips);
+    Logger:Log("- Valid tooltips: %d", validTooltips);
 end
 
 function Data:GetItemStatusAsString(status)
@@ -282,11 +219,6 @@ end
 
 ----------------------------------------------------------
 -- Debug purposes only.
-
-function Data:PrintDatabase()
-    local scanDB = GU.db.global.scanDB;
-
-end
 
 function Data:PrintAllItemLinks()
     local scanDB = GU.db.global.scanDB;
@@ -331,14 +263,6 @@ function Data:PrintItemInfo(item, id)
     end
 end
 
-function Data:RemoveVersionFromItems()
-    local scanDB = GU.db.global.scanDB;
-
-    for k,v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
-        scanDB.items[Locales:GetDatabaseLocaleKey()][k].version = nil;
-    end
-end
-
 function Data:SerializeTest()
     local scanDB = GU.db.global.scanDB;
 
@@ -354,31 +278,4 @@ function Data:DeleteAllItemTooltips()
             scanDB.tooltips[Locales:GetDatabaseLocaleKey()][k] = nil;
         end
     end
-end
-
-function Data:PrintTooltipStatus()
-    local scanDB = GU.db.global.scanDB;
-
-    local invalid, empty, incorrect, valid = 0, 0, 0, 0;
-    for k,v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
-        if (scanDB.tooltips[Locales:GetDatabaseLocaleKey()][k]) then
-            if (scanDB.tooltips[Locales:GetDatabaseLocaleKey()][k] == "") then
-                if (v.type == GU_TYPE_ARMOR or v.type == GU_TYPE_WEAPON) then
-                    incorrect = incorrect + 1;
-                else
-                    empty = empty + 1;
-                end
-            else
-                valid = valid + 1;
-            end
-        else
-            invalid = invalid + 1;
-        end
-    end
-
-    Logger:Log("- Invalid tooltips: %d", invalid);
-    Logger:Log("- Empty tooltips: %d", empty);
-    Logger:Log("- Incorrect tooltips: %d", incorrect);
-    Logger:Log("- Valid tooltips: %d", valid);
-
 end

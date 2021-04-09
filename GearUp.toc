@@ -61,6 +61,7 @@ scripts/Async.lua
 scripts/Data.lua
 scripts/Data_Scanning.lua
 scripts/Data_Parsing.lua
+scripts/Data_Fixing.lua
 
 scripts/Functions.lua
 scripts/Frames.lua

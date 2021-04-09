@@ -73,6 +73,22 @@ function Data:GetTooltipText(itemLink)
     return tooltipText;
 end
 
+function Data:ResetParsedProperties(item)
+    local scanDB = GU.db.global.scanDB;
+
+    local set = item.set;
+    if (set and set ~= "") then
+        scanDB.sets[Locales:GetDatabaseLocaleKey()][set] = nil;
+    end
+
+    item.classes = {};
+    item.set = "";
+    item.properties = {};
+    item.equipBonuses = {};
+    item.useBonuses = {};
+    item.onHitBonuses = {};
+end
+
 function Data:GetItemIDToParse()
     local scanDB = GU.db.global.scanDB;
     local currentID = (self.lastIDParsed + 1) % self:GetMaxItemID();

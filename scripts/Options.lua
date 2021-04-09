@@ -91,13 +91,13 @@ local OptionsTable = {
             get = "GetVerboseLogEnabled",
         },
 
-        fixscan = {
+        fix = {
             hidden = "GetDevModeOptionsHidden",
             guiHidden = true,
             type = "execute",
-            name = "Fix scanned items",
-            desc = "Re-check already scanned items and delete deprecated/invalid ones.",
-            func = "FixScannedItems",
+            name = "Fix Scan",
+            desc = "Fix scanned database. Available options: validate|deprecated|tooltips|depnames",
+            func = "FixScan",
         }
     },
 }
@@ -151,12 +151,11 @@ function GU:TestCommand(info)
     -- Data:RestoreDeprecatedItems();
     -- Data:FixDeprecatedNames();
     -- Data:AddAllDeprecatedIDs();
-    -- Data:RemoveVersionFromItems();
     -- Data:SerializeTest();
-    Data:PrintItemInfoByID(19822);
     -- print(Data:GetTooltipText(Misc:GenerateFullItemLink(21330, 4, "Conqueror's Spaulders")));
     -- Data:DeleteAllItemTooltips();
-    Data:PrintTooltipStatus();
+    -- Data:PrintItemInfoByID(19822);
+    -- Data:PrintScannedItemsWithEmptyTooltip();
 end
 
 -- Scan
@@ -217,11 +216,26 @@ function GU:GetVerboseLogEnabled(info)
 end
 
 -- Scan fixing
-function GU:FixScannedItems(info)
+function GU:FixScan(info)
     if (not self:GetDevModeEnabled()) then
-        self:PrintNoAccessError("Fix Scanned Items");
+        self:PrintNoAccessError("Fix Scan");
         return;
     end
 
-    Data:FixItemTooltips();
+    local param = string.match(info.input, "fix (.+)")
+    if (param) then
+        if (param == "validate") then
+            Data:ValidateScannedItems();
+        elseif (param == "tooltips") then
+            Data:CheckItemTooltips();
+        elseif (param == "deprecated") then
+            Data:RevalidateDeprecatedItems();
+        elseif (param == "depnames") then
+            Data:FixDeprecatedNames();
+        else
+            Logger:Err("FixScan Invalid option given: %s", param);
+        end
+    else
+        Logger:Err("FixScan No option given, don't know what to fix.");
+    end
 end
