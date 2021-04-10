@@ -132,6 +132,7 @@ function Data:ResetScanningDatabase()
     --     texture : string
     --     sellPrice : int
     --     classes : {}                 -- List of available classes or empty for all
+    --     races : {}                   -- List of available races or empty for all
     --     set : string                 -- Name of the set, if eligible
     --     randomEnchantment : bool
     --     properties : {}              -- List of name -> value pairs for common properties
@@ -262,7 +263,7 @@ function Data:PrintItemInfo(item, id)
     Logger:Display("- Type/Subtype: %s/%s", item.type, item.subtype);
     Logger:Display("- Set: %s", item.set);
     Logger:Display("- Classes: %s", Misc:GetTableAsString(item.classes, ", "));
-    Logger:Display("- Random enchantment: %s", Misc:BoolToString(item.randomEnchantment));
+    Logger:Display("- Random enchantment: %s", Misc:BoolToString(item.randomEnchantment or false));
     Logger:Display("- Properties:");
     for k,v in pairs(item.properties) do
         Logger:Display("--- %s: %s", k, tostring(v));

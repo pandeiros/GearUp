@@ -234,6 +234,10 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
         self:AddItemProperty(GU_PROPERTY_BOE, true);
         Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_BOE");
         return true;
+    elseif (tooltipLine:find(GU_REGEX_BOU)) then
+        self:AddItemProperty(GU_PROPERTY_BOU, true);
+        Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_BOU");
+        return true;
     end
 
     -- Check common properties (level required, durability, classes, flavor text etc.)
@@ -266,6 +270,9 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
         local classAdded = false;
         for i = 1, #classesTable do
             if (Misc:Contains(GU_CLASSES, classesTable[i])) then
+                if (not self.tempParsedItem.classes) then
+                    self.tempParsedItem.classes = {};
+                end
                 table.insert(self.tempParsedItem.classes, classesTable[i]);
                 classAdded = true;
             else
@@ -282,6 +289,40 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
 
         return classAdded;
     end
+
+    -- Eligible races. Example: Races: Orc, Undead, Tauren, Troll
+    local races = tooltipLine:match(GU_REGEX_RACES);
+    if (races) then        
+        races = races:gsub(",", "");
+
+        local racesTable = {};
+        races:gsub("(%a+)", function (w)
+            table.insert(racesTable, w)
+        end)
+
+        local raceAdded = false;
+        for i = 1, #racesTable do
+            if (Misc:Contains(GU_RACES, racesTable[i])) then
+                if (not self.tempParsedItem.races) then
+                    self.tempParsedItem.races = {};
+                end
+                table.insert(self.tempParsedItem.races, racesTable[i]);
+                raceAdded = true;
+            else
+                Logger:Err("Data:ParseItemTooltipLine Found unsupported race name: %s", racesTable[i]);
+                return false;
+            end
+        end
+
+        if (not raceAdded) then
+            Logger:Err("Data:ParseItemTooltipLine Tooltip line matched 'Races: ...', but no valid race was found.");
+        else
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_RACES");
+        end
+
+        return raceAdded;
+    end
+    
 
     -- Flavor text. Example: "The head of the Black Dragonflight's Brood Mother"
     local flavorText = tooltipLine:match(GU_REGEX_FLAVOR_TEXT);
@@ -329,6 +370,7 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
         -- Equip Effects. Example: Equip: Increases damage and healing done by magical spells and effects by up to 29
         local equipEffect = tooltipLine:match(GU_REGEX_EQUIP_EQUIP_EFFECT);
         if (equipEffect) then
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_EQUIP_EQUIP_EFFECT");
             return self:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect);
         end
 
@@ -437,11 +479,12 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
                     return true;
                 end
                 itemType = type1 .. " " .. type2;
-                if (Misc:Contains(GU_PROPERTY_WEAPON_SLOTS, itemType) and Misc:Contains(GU_PROPERTY_WEAPON_TYPES, type3)) then
+                if (Misc:Contains(GU_PROPERTY_WEAPON_SLOTS, itemType) and Misc:Contains(GU_PROPERTY_WEAPON_TYPES, type3)
+                    or Misc:Contains(GU_PROPERTY_WEAPON_SLOTS, itemType) and Misc:Contains(GU_PROPERTY_ARMOR_TYPES, type3)) then
                     return true;
                 end
 
-                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 3 strings: ", tooltipLine);
+                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 3 strings: %s", tooltipLine);
                 return false;
             -- This can either be Slot + Type or two-words Type     
             elseif (typeCount == 2) then
@@ -455,7 +498,7 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
                         return true;
                 end
 
-                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 2 strings: ", tooltipLine);
+                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 2 strings: %s", tooltipLine);
                 return false;
             else
                 if (Misc:Contains(GU_PROPERTY_WEAPON_SLOTS, type1)) then
@@ -465,7 +508,7 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
                     return true;
                 end
 
-                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 1 string: ", tooltipLine);
+                Logger:Err("Data:ParseItemTooltipLine Cannot parse type/slot configuration for 1 string: %s", tooltipLine);
                 return false;
 
             end
@@ -481,9 +524,13 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine)
         result = self:ParseWeaponItemTooltipLine(itemID, itemSubtype, tooltipLine);
     elseif (itemType == L["TYPE_ARMOR"]) then
         result = self:ParseArmorItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    elseif (itemType == L["TYPE_RECIPE"]) then
+        result = self:ParseRecipeItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    elseif (itemType == L["TYPE_CONTAINER"]) then
+        result = self:ParseContainerItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    elseif (itemType == L["TYPE_MISC"]) then
+        result = self:ParseMiscItemTooltipLine(itemID, itemSubtype, tooltipLine);
     end
-    -- TODO
-    -- Containers (bags and profession bags)
 
     if (not result) then
         Logger:Err("Data:ParseItemTooltipLine Tooltip line parsing unsuccessful for %s", tooltipLine);
@@ -576,15 +623,155 @@ function Data:ParseArmorItemTooltipLine(itemID, itemSubtype, tooltipLine)
     return true;    
 end
 
+function Data:ParseRecipeItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    -- Profession requirement. Example: Requires Cooking (75)
+    local profession, level = tooltipLine:match(GU_REGEX_RECIPE_REQUIRE_PROFESSION);
+    if (profession) then
+        if (Misc:Contains(GU_RECIPE_SUBTYPES, profession)) then
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_RECIPE_REQUIRE_PROFESSION");
+            return true;
+        else
+            Logger:Err("Data:ParseRecipeItemTooltipLine Invalid profession requirement found: %s (%d)", profession, level);
+            return false;    
+        end
+    end
+
+    -- Required materials. Example: Requires Stringy Vulture Meat, Murloc Eye, Goretusk Snout
+    local materials = tooltipLine:match(GU_REGEX_RECIPE_REQUIRE_MATERIALS);
+    if (materials) then
+        Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_RECIPE_REQUIRE_MATERIALS");
+        return true;
+    end
+
+    -- Name. Example: Westfall Stew
+    local name = tooltipLine:match(GU_REGEX_RECIPE_NAME);
+    if (name) then
+        Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_RECIPE_NAME");
+        return true;
+    end
+
+    Logger:Err("Data:ParseRecipeItemTooltipLine Could not parse recipes's tooltip line: %s", tooltipLine);
+    return false;
+end
+
+function Data:ParseContainerItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    -- Bag slots and type. Example: 24 Slot Enchanting Bag
+    local slots, bagType = tooltipLine:match(GU_REGEX_CONTAINER_SLOTS_AND_TYPE);
+    if (slots and bagType) then
+        if (Misc:Contains(GU_CONTAINER_SUBTYPES, bagType)) then
+            self:AddItemProperty(bagType, slots);
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_CONTAINER_SLOTS_AND_TYPE");
+            return true;
+        else
+            Logger:Err("Data:ParseContainerItemTooltipLine Invalid bag type found: %s", bagType);
+            return false;    
+        end
+    end
+
+    Logger:Err("Data:ParseContainerItemTooltipLine Could not parse container's tooltip line: %s", tooltipLine);
+    return false;
+end
+
+function Data:ParseMiscItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    -- Riding skill requirement. Example: Requires Tiger Riding (1)
+    local ridingSkill = tooltipLine:match(GU_REGEX_MOUNT_RIDING);
+    if (ridingSkill) then
+        if (Misc:Contains(GU_PROPERTY_RIDING_SKILLS, ridingSkill)) then
+            self:AddItemProperty(ridingSkill, true);
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_MOUNT_RIDING");
+            return true;
+        else
+            Logger:Err("Data:ParseContainerItemTooltipLine Invalid riding skill found: %s", ridingSkill);
+            return false;    
+        end
+    end
+
+    Logger:Err("Data:ParseMiscItemTooltipLine Could not parse misc's tooltip line: %s", tooltipLine);
+    return false;
+end
+
 function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect)
     -- Spell power. Example: Increases damage and healing done by magical spells and effects by up to 29
     local spellPower = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER);
     if (spellPower) then
         self:AddItemProperty(GU_PROPERTY_SPELL_POWER, spellPower);
-        Logger:Verb("Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER");
         return true;
     end
 
+    -- Spell power for type. Example: Increases damage done by Frost spells and effects by up to 21
+    local spellDamageType, spellDamageTypeValue = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE);
+    if (spellDamageType and spellDamageTypeValue) then
+        if (Misc:Contains(GU_ELEMENTAL_DAMAGE_TYPES, spellDamageType)) then
+            local property = spellDamageType .. " " .. GU_PROPERTY_SPELL_DAMAGE;
+            self:AddItemProperty(property, spellDamageTypeValue);
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE");
+            return true;
+        else
+            Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported spell damage type found '%s' for: %s", spellDamageType, equipEffect);
+            return false;
+        end
+    end
+
+    -- Healing per 5. Example: Restores 10 health every 5 sec
+    local hp5 = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_HP5);
+    if (hp5) then
+        self:AddItemProperty(GU_PROPERTY_HP5, hp5);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_HP5");
+        return true;
+    end
+
+    -- Critical chance. Example: Improves your chance to get a critical strike by 1%.
+    local critStrikeChance = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE);
+    if (critStrikeChance) then
+        self:AddItemProperty(GU_PROPERTY_STRIKE_CRITICAL_CHANCE, critStrikeChance);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE");
+        return true;
+    end
+
+    -- Attack power vs. enemy type. Example:  +30 Attack Power when fighting Undead
+    local apTypeValue, apType = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE);
+    if (apTypeValue and apType) then
+        if (Misc:Contains(GU_PROPERTY_ENEMY_TYPES, apType)) then
+            local property = apType .. " " .. GU_PROPERTY_ATTACK_POWER;
+            self:AddItemProperty(property, apTypeValue);
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE");
+            return true;
+        else
+            Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported enemy type found '%s' for: %s", apType, equipEffect);
+            return false;
+        end
+    end
+
+    -- Attack power. Example: +20 Attack Power
+    local ap = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_AP);
+    if (ap) then
+        self:AddItemProperty(GU_PROPERTY_ATTACK_POWER, ap);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_AP");
+        return true;
+    end
+
+    -- Defense. Example: Increased Defense +5
+    local defense = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_DEFENSE);
+    if (defense) then
+        self:AddItemProperty(GU_PROPERTY_DEFENSE, defense);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_DEFENSE");
+        return true;
+    end
+
+    local customEquipEffects = {
+        "When struck in combat has a 1% chance of inflicting 50 Frost damage to the attacker and freezing them for 5 sec."
+    }
+
+    for k,v in pairs(customEquipEffects) do
+        if (equipEffect == v) then
+            table.insert(self.tempParsedItem.equipEffects, equipEffect);
+            Logger:Verb("-- Tooltip line '%s' matched against custom equip effect.", equipEffect);
+            return true;
+        end
+    end
+
+    Logger:Err("Data:ProcessItemTooltipLineEquipEffect Could not parse equip effect from tooltip line: %s", equipEffect);
     return false;
 end
 

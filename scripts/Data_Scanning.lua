@@ -502,6 +502,7 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
             texture = itemTexture,
             sellPrice = itemSellPrice,
             classes = {},
+            races = {},
             set = "",
             randomEnchantment = false,
             properties = {},

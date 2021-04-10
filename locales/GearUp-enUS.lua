@@ -156,6 +156,21 @@ L["CLASS_WARLOCK"] = "Warlock";
 L["CLASS_WARRIOR"] = "Warrior";
 
 ----------------------------------------------------------
+-- Races
+----------------------------------------------------------
+
+L["RACE_HUMAN"] = "Human";
+L["RACE_NIGHT_ELF"] = "Night Elf";
+L["RACE_DWARF"] = "Dwarf";
+L["RACE_GNOME"] = "Gnome";
+L["RACE_DRAENEI"] = "Draenei";
+L["RACE_ORC"] = "Orc";
+L["RACE_UNDEAD"] = "Undead";
+L["RACE_TAUREN"] = "Tauren";
+L["RACE_TROLL"] = "Troll";
+L["RACE_BLOOD_ELF"] = "Blood Elf";
+
+----------------------------------------------------------
 -- Damage
 ----------------------------------------------------------
 
@@ -207,6 +222,7 @@ L["PROPERTY_DURABILITY"] = "Durability";
 L["PROPERTY_SOULBOUND"] = "Soulbound";
 L["PROPERTY_BOP"] = "Binds when picked up";
 L["PROPERTY_BOE"] = "Binds when equipped";
+L["PROPERTY_BOU"] = "Binds when used";
 L["PROPERTY_UNIQUE"] = "Unique";
 L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
 L["PROPERTY_QUEST_ITEM"] = "Quest Item";
@@ -259,6 +275,16 @@ L["PROPERTY_SIGIL"] = "Sigil";
 -- Projectile
 L["PROPERTY_AMMO"] = "Ammo";
 
+-- Misc
+L["PROPERTY_HORSE_RIDING"] = "Horse Riding";
+L["PROPERTY_TIGER_RIDING"] = "Tiger Riding";
+L["PROPERTY_RAM_RIDING"] = "Ram Riding";
+L["PROPERTY_MECHANOSTRIDER_PILOTING"] = "Mechanostrider Piloting";
+L["PROPERTY_WOLF_RIDING"] = "Wolf Riding";
+L["PROPERTY_UNDEAD_HORSEMANSHIP"] = "Undead Horsemanship";
+L["PROPERTY_KODO_RIDING"] = "Kodo Riding";
+L["PROPERTY_RAPTOR_RIDING"] = "Raptor Riding";
+
 -- Equippable
 L["PROPERTY_SET"] = "Set";
 
@@ -275,6 +301,10 @@ L["PROPERTY_AGILITY"] = "Agility";
 L["PROPERTY_INTELLECT"] = "Intellect";
 L["PROPERTY_SPIRIT"] = "Spirit";
 
+L["PROPERTY_ENEMY_TYPE_UNDEAD"] = "Undead";
+L["PROPERTY_ENEMY_TYPE_DRAGONS"] = "Dragons";
+L["PROPERTY_ENEMY_TYPE_BEASTS"] = "Beasts";
+
 ----------------------------------------------------------
 -- Regex
 ----------------------------------------------------------
@@ -288,6 +318,7 @@ L["REGEX_UNIQUE_EQUIPPED"] = GL["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)";
 L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";
 L["REGEX_DURABILITY"] = GL["PROPERTY_DURABILITY"] .. " %d+ / (%d+)";
 L["REGEX_CLASSES"] = "Classes: (.+)";
+L["REGEX_RACES"] = "Races: (.+)";
 L["REGEX_FLAVOR_TEXT"] = "(\".+\")";
 L["REGEX_USE_EFFECT"] = "Use: (.+)";
 L["REGEX_QUEST_ITEM"] = GL["PROPERTY_QUEST_ITEM"];
@@ -301,6 +332,12 @@ L["REGEX_EQUIP_SLOT_AND_TYPE"] = "([%a%-]+)%s?([%a%-]*)%s?([%a%-]*)%s?([%a%-]*)"
 
 L["REGEX_EQUIP_EQUIP_EFFECT"] = "Equip: (.+)";
 L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER"] = "Increases damage and healing done by magical spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE"] = "Increases damage done by (%a+) spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EQUIP_EFFECT_HP5"] = "Restores (%d+) health every 5%.?%d? sec";
+L["REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE"] = "Improves your chance to get a critical strike by (%d+)%%";
+L["REGEX_EQUIP_EQUIP_EFFECT_AP"] = "%+(%d+) Attack Power";
+L["REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE"] = "%+(%d+) Attack Power when fighting (%a+)";
+L["REGEX_EQUIP_EQUIP_EFFECT_DEFENSE"] = "Increased Defense %+(%d+)";
 
 -- Weapon
 L["REGEX_WEAPON_DAMAGE"] = "(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
@@ -313,5 +350,16 @@ L["REGEX_WEAPON_CHANCE_ON_HIT"] = "Chance on hit: (.+)";
 -- Armor
 L["REGEX_ARMOR_BLOCK"] = "(%d+) " .. GL["PROPERTY_BLOCK"];
 L["REGEX_ARMOR_ARMOR"] = "(%d+) " .. GL["PROPERTY_ARMOR"];
+
+-- Recipes
+L["REGEX_RECIPE_REQUIRE_PROFESSION"] = "Requires (%a+) %((%d+)%)";
+L["REGEX_RECIPE_REQUIRE_MATERIALS"] = "Requires [%a%s,]+";
+L["REGEX_RECIPE_NAME"] = "[%a%s]+";
+
+-- Containers
+L["REGEX_CONTAINER_SLOTS_AND_TYPE"] = "(%d+) Slot ([%a%s]+)";
+
+-- Misc
+L["REGEX_MOUNT_RIDING"] = "Requires (%a+%s%a+) %(%d+%)";
 
 end
