@@ -172,6 +172,9 @@ L["DAMAGE_TYPE_SHADOW"] = "Shadow";
 -- Equipment slots
 ----------------------------------------------------------
 
+-- TODO Need to iterate through all scanned items and verify these names
+-- based on items' equipLocations property.
+
 L["SLOT_HEAD"] = "Head";
 L["SLOT_NECK"] = "Neck";
 L["SLOT_SHOULDER"] = "Shoulder";
@@ -191,7 +194,8 @@ L["SLOT_ONE_HAND"] = "One-Hand";
 L["SLOT_TWO_HAND"] = "Two-Hand";
 L["SLOT_MAIN_HAND"] = "Main-Hand";
 L["SLOT_RANGED"] = "Ranged";
-L["SLOT_SPECIAL"] = "Special";      -- Sigils, Totems, Librams
+L["SLOT_RELIC"] = "Relic";
+L["SLOT_SPECIAL"] = "Special";      -- Sigils, Totems, Librams -- TODO: potentially not used.
 
 ----------------------------------------------------------
 -- Properties
@@ -205,6 +209,8 @@ L["PROPERTY_BOP"] = "Binds when picked up";
 L["PROPERTY_BOE"] = "Binds when equipped";
 L["PROPERTY_UNIQUE"] = "Unique";
 L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
+L["PROPERTY_QUEST_ITEM"] = "Quest Item";
+L["PROPERTY_RANDOM_ENCH"] = "Random enchantment";
 
 -- Weapon
 L["PROPERTY_DAMAGE_MIN"] = "Max Damage";
@@ -216,9 +222,45 @@ L["PROPERTY_EXTRA_DAMAGE_TYPE"] = "Extra Damage Type";
 L["PROPERTY_DAMAGE_SPEED"] = "Speed";
 L["PROPERTY_DPS"] = "DPS";
 
+L["PROPERTY_ONE_HAND"] = "One-Hand";
+L["PROPERTY_TWO_HAND"] = "Two-Hand";
+L["PROPERTY_MAIN_HAND"] = "Main Hand";
+L["PROPERTY_OFF_HAND"] = "Off Hand";
+L["PROPERTY_OFF_HAND_HELD"] = "Held In Off-hand";
+
+L["PROPERTY_BOW"] = "Bow";
+L["PROPERTY_CROSSBOW"] = "Crossbow";
+L["PROPERTY_DAGGER"] = "Dagger";
+L["PROPERTY_GUN"] = "Gun";
+L["PROPERTY_FISHING_POLE"] = "Fishing Pole";
+L["PROPERTY_FIST_WEAPON"] = "Fist Weapon";
+L["PROPERTY_AXE"] = "Axe";
+L["PROPERTY_MACE"] = "Mace";
+L["PROPERTY_SWORD"] = "Sword";
+L["PROPERTY_POLEARM"] = "Polearm";
+L["PROPERTY_STAFF"] = "Staff";
+L["PROPERTY_THROWN"] = "Thrown";
+L["PROPERTY_WAND"] = "Wand";
+
 -- Armor
 L["PROPERTY_ARMOR"] = "Armor";
 L["PROPERTY_BLOCK"] = "Block";
+
+L["PROPERTY_CLOTH"] = "Cloth";
+L["PROPERTY_LEATHER"] = "Leather";
+L["PROPERTY_MAIL"] = "Mail";
+L["PROPERTY_PLATE"] = "Plate";
+L["PROPERTY_SHIELD"] = "Shield";
+L["PROPERTY_LIBRAM"] = "Libram";
+L["PROPERTY_IDOL"] = "Idol";
+L["PROPERTY_TOTEM"] = "Totem";
+L["PROPERTY_SIGIL"] = "Sigil";
+
+-- Projectile
+L["PROPERTY_AMMO"] = "Ammo";
+
+-- Equippable
+L["PROPERTY_SET"] = "Set";
 
 L["PROPERTY_RESISTANCE"] = "Resistance";
 L["PROPERTY_RESISTANCE_ARCANE"] = "Arcane Resistance";
@@ -238,14 +280,27 @@ L["PROPERTY_SPIRIT"] = "Spirit";
 ----------------------------------------------------------
 
 -- TODO If trick with GL doesn't work in parsing, write those entries manually.
+-- NOTE: WoW Lua api does not support %g in patterns.
 
 -- Common
 L["REGEX_UNIQUE_EQUIPPED"] = GL["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)";
 
 L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";
 L["REGEX_DURABILITY"] = GL["PROPERTY_DURABILITY"] .. " %d+ / (%d+)";
+L["REGEX_CLASSES"] = "Classes: (.+)";
+L["REGEX_FLAVOR_TEXT"] = "(\".+\")";
+L["REGEX_USE_EFFECT"] = "Use: (.+)";
+L["REGEX_QUEST_ITEM"] = GL["PROPERTY_QUEST_ITEM"];
+L["REGEX_RANDOM_ENCH"] = "<" .. GL["PROPERTY_RANDOM_ENCH"] .. ">";
 
 -- Equippable
+L["REGEX_EQUIP_ATTRIBUTE"] = "%+(%d+)%s(%a+)%s*(%a*)";
+L["REGEX_EQUIP_SET_NAME"] = "(%a+) %(0/(%d+)%)";
+L["REGEX_EQUIP_SET_BONUS"] = "%((%d+)%) " .. GL["PROPERTY_SET"] .. " : (.+)-"
+L["REGEX_EQUIP_SLOT_AND_TYPE"] = "([%a%-]+)%s?([%a%-]*)%s?([%a%-]*)%s?([%a%-]*)";
+
+L["REGEX_EQUIP_EQUIP_EFFECT"] = "Equip: (.+)";
+L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER"] = "Increases damage and healing done by magical spells and effects by up to (%d+)";
 
 -- Weapon
 L["REGEX_WEAPON_DAMAGE"] = "(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
@@ -257,5 +312,6 @@ L["REGEX_WEAPON_CHANCE_ON_HIT"] = "Chance on hit: (.+)";
 
 -- Armor
 L["REGEX_ARMOR_BLOCK"] = "(%d+) " .. GL["PROPERTY_BLOCK"];
+L["REGEX_ARMOR_ARMOR"] = "(%d+) " .. GL["PROPERTY_ARMOR"];
 
 end

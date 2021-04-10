@@ -79,6 +79,8 @@ function Data:DoTasks(taskCount)
     for _ = 1,taskCount do
         self:ScanItems();
     end
+
+    self:ParseItems();
 end
 
 function Data:Cleanup()
@@ -129,8 +131,9 @@ function Data:ResetScanningDatabase()
     --     equipLocation : string
     --     texture : string
     --     sellPrice : int
-    --     classes : {}                 -- list of available classes or empty for all
+    --     classes : {}                 -- List of available classes or empty for all
     --     set : string                 -- Name of the set, if eligible
+    --     randomEnchantment : bool
     --     properties : {}              -- List of name -> value pairs for common properties
     --     equipEffects : {}            -- List of unique equip, use and onHit effects.
     --     useEffects : {}
@@ -161,7 +164,7 @@ function Data:ResetScanningDatabase()
     -- }
     -- Structure (localised):
     -- setName = {
-    --     nameEN : string     -- Default set name for enUS locale.
+    --     nameEN : string     -- Default set name for enUS locale. NOTE: This can be parsed manually after parsing enUS locale.
     --     bonuses : {}        -- Localized set bonuses
     -- }
     scanDB.sets = {};
@@ -259,6 +262,7 @@ function Data:PrintItemInfo(item, id)
     Logger:Display("- Type/Subtype: %s/%s", item.type, item.subtype);
     Logger:Display("- Set: %s", item.set);
     Logger:Display("- Classes: %s", Misc:GetTableAsString(item.classes, ", "));
+    Logger:Display("- Random enchantment: %s", Misc:BoolToString(item.randomEnchantment));
     Logger:Display("- Properties:");
     for k,v in pairs(item.properties) do
         Logger:Display("--- %s: %s", k, tostring(v));

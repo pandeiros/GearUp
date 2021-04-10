@@ -450,6 +450,19 @@ function Data:AddItemInfo(itemID, itemName, itemLink, itemRarity, itemLevel, ite
         itemType, itemSubtype, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice);
 end
 
+function Data:FindItemIDByItemName(itemName)
+    local scanDB = GU.db.global.scanDB;
+    local itemID = nil;
+    for k,v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
+        if (v.name == itemName) then
+            itemID = k;
+            break;
+        end
+    end
+
+    return itemID;
+end
+
 -- This will only add item tooltip if current one was invalid or if new one is valid AND longer than old one.
 function Data:AddItemTooltip(itemID, itemLink)
     itemID = tonumber(itemID);
@@ -490,6 +503,7 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
             sellPrice = itemSellPrice,
             classes = {},
             set = "",
+            randomEnchantment = false,
             properties = {},
             equipEffects = {},
             useEffects = {},
@@ -500,6 +514,7 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
     else
         local item = {
             name = itemName,
+            set = "",
             equipEffects = {},
             useEffects = {},
             onHitEffects = {}

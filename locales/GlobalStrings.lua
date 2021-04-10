@@ -154,6 +154,21 @@ GU_CLASS_SHAMAN = "Shaman";
 GU_CLASS_WARLOCK = "Warlock";
 GU_CLASS_WARRIOR = "Warrior";
 
+GU_CLASSES = {
+    L["CLASS_DEATHKNIGHT"],
+    L["CLASS_DEMONHUNTER"],
+    L["CLASS_DRUID"],
+    L["CLASS_HUNTER"],
+    L["CLASS_MAGE"],
+    L["CLASS_MONK"],
+    L["CLASS_PALADIN"],
+    L["CLASS_PRIEST"],
+    L["CLASS_ROGUE"],
+    L["CLASS_SHAMAN"],
+    L["CLASS_WARLOCK"],
+    L["CLASS_WARRIOR"]
+}
+
 ----------------------------------------------------------
 -- Damage types
 ----------------------------------------------------------
@@ -175,6 +190,7 @@ GU_ELEMENTAL_DAMAGE_TYPES = {
     L["DAMAGE_TYPE_HOLY"],
     L["DAMAGE_TYPE_SHADOW"]
     -- HERE INSERT ALL VARIETIES FOR ALL LOCALES NOT COVERED BY L["..."]
+    -- Really necessary? Probably these properties are only scanned for enUS locale.
 }
 
 ----------------------------------------------------------
@@ -214,6 +230,7 @@ GU_PROPERTY_BOP = "Binds when picked up";
 GU_PROPERTY_BOE = "Binds when equipped";
 GU_PROPERTY_UNIQUE = "Unique";
 GU_PROPERTY_UNIQUE_EQUIPPED = "Unique-Equipped";
+GU_PROPERTY_FLAVOR_TEXT = "Flavor Text";
 
 -- Weapon
 GU_PROPERTY_DAMAGE_MIN = "Max Damage";
@@ -225,10 +242,66 @@ GU_PROPERTY_EXTRA_DAMAGE_TYPE = "Extra Damage Type";
 GU_PROPERTY_DAMAGE_SPEED = "Speed";
 GU_PROPERTY_DPS = "DPS";
 
+GU_PROPERTY_WEAPON_TYPES = {
+    L["PROPERTY_BOW"],
+    L["PROPERTY_CROSSBOW"],
+    L["PROPERTY_DAGGER"],
+    L["PROPERTY_GUN"],
+    L["PROPERTY_FISHING_POLE"],
+    L["PROPERTY_FIST_WEAPON"],
+    L["PROPERTY_AXE"],
+    L["PROPERTY_MACE"],
+    L["PROPERTY_SWORD"],
+    L["PROPERTY_POLEARM"],
+    L["PROPERTY_STAFF"],
+    L["PROPERTY_THROWN"],
+    L["PROPERTY_WAND"]
+}
+
+GU_PROPERTY_WEAPON_SLOTS = {
+    L["PROPERTY_ONE_HAND"],
+    L["PROPERTY_TWO_HAND"],
+    L["PROPERTY_MAIN_HAND"],
+    L["PROPERTY_OFF_HAND"],
+    L["PROPERTY_OFF_HAND_HELD"],
+    L["SLOT_RANGED"]
+}
+
 -- Armor
 GU_PROPERTY_ARMOR = "Armor";
 GU_PROPERTY_BLOCK = "Block";
 
+GU_PROPERTY_ARMOR_TYPES = {
+    L["PROPERTY_CLOTH"],
+    L["PROPERTY_LEATHER"],
+    L["PROPERTY_MAIL"],
+    L["PROPERTY_PLATE"],
+    L["PROPERTY_SHIELD"],
+    L["PROPERTY_LIBRAM"],
+    L["PROPERTY_IDOL"],
+    L["PROPERTY_TOTEM"],
+    L["PROPERTY_SIGIL"]
+}
+
+GU_PROPERTY_ARMOR_SLOTS = {
+    L["SLOT_HEAD"],
+    L["SLOT_NECK"],
+    L["SLOT_SHOULDER"],
+    L["SLOT_BACK"],
+    L["SLOT_CHEST"],
+    L["SLOT_SHIRT"],
+    L["SLOT_TABARD"],
+    L["SLOT_WRIST"],
+    L["SLOT_HANDS"],
+    L["SLOT_WAIST"],
+    L["SLOT_LEGS"],
+    L["SLOT_FEET"],
+    L["SLOT_FINGER"],
+    L["SLOT_TRINKET"],
+    L["SLOT_RELIC"]
+}
+
+-- Equippable
 GU_PROPERTY_RESISTANCE = "Resistance";
 GU_PROPERTY_RESISTANCE_ARCANE = "Arcane Resistance";
 GU_PROPERTY_RESISTANCE_FIRE = "Fire Resistance";
@@ -241,6 +314,18 @@ GU_PROPERTY_STAMINA = "Stamina";
 GU_PROPERTY_AGILITY = "Agility";
 GU_PROPERTY_INTELLECT = "Intellect";
 GU_PROPERTY_SPIRIT = "Spirit";
+
+GU_PROPERTY_ATTRIBUTES = {
+    L["PROPERTY_STRENGTH"],
+    L["PROPERTY_STAMINA"],
+    L["PROPERTY_AGILITY"],
+    L["PROPERTY_INTELLECT"],
+    L["PROPERTY_SPIRIT"]
+}
+
+GU_PROPERTY_SPELL_POWER = "Spell Power";
+GU_PROPERTY_SPELL_DAMAGE = "Spell Damage";
+GU_PROPERTY_SPELL_HEALING = "Spell Healing";
 
 ----------------------------------------------------------
 -- Regex
@@ -263,8 +348,21 @@ GU_REGEX_UNIQUE_EQUIPPED = GetExactRegexString(L["REGEX_UNIQUE_EQUIPPED"]);
 
 GU_REGEX_LEVEL_REQUIRED = GetExactRegexString(L["REGEX_LEVEL_REQUIRED"]);
 GU_REGEX_DURABILITY = GetExactRegexString(L["REGEX_DURABILITY"]);
+GU_REGEX_CLASSES = GetExactRegexString(L["REGEX_CLASSES"]);
+GU_REGEX_FLAVOR_TEXT = GetExactRegexString(L["REGEX_FLAVOR_TEXT"]);
+GU_REGEX_USE_EFFECT = GetExactRegexString(L["REGEX_USE_EFFECT"]);
+GU_REGEX_QUEST_ITEM = GetExactRegexString(L["REGEX_QUEST_ITEM"]);
+GU_REGEX_RANDOM_ENCH = GetExactRegexString(L["REGEX_RANDOM_ENCH"]);
 
 -- Equippable
+GU_REGEX_EQUIP_ATTRIBUTE = GetExactRegexString(L["REGEX_EQUIP_ATTRIBUTE"]);
+GU_REGEX_EQUIP_SET_NAME = GetExactRegexString(L["REGEX_EQUIP_SET_NAME"]);
+GU_REGEX_EQUIP_SET_ITEM = GetExactRegexString("(.+)");
+GU_REGEX_EQUIP_SET_BONUS = GetExactRegexString(L["REGEX_EQUIP_SET_BONUS"]);
+GU_REGEX_EQUIP_SLOT_AND_TYPE = GetExactRegexString(L["REGEX_EQUIP_SLOT_AND_TYPE"]);
+
+GU_REGEX_EQUIP_EQUIP_EFFECT = GetExactRegexString(L["REGEX_EQUIP_EQUIP_EFFECT"]);
+GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER = L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER"];
 
 -- Weapon
 GU_REGEX_WEAPON_DAMAGE_AND_SPEED = GetExactRegexString(L["REGEX_WEAPON_DAMAGE_AND_SPEED"]);
@@ -274,6 +372,7 @@ GU_REGEX_WEAPON_CHANCE_ON_HIT = GetExactRegexString(L["REGEX_WEAPON_CHANCE_ON_HI
 
 -- Armor
 GU_REGEX_ARMOR_BLOCK = GetExactRegexString(L["REGEX_ARMOR_BLOCK"]);
+GU_REGEX_ARMOR_ARMOR = GetExactRegexString(L["REGEX_ARMOR_ARMOR"]);
 
 -- Other
 -- GU_REGEX_HEAD = GetExactRegexString(L["REGEX_HEAD"] .. ".*");
