@@ -84,9 +84,9 @@ function Data:ResetParsedProperties(item)
     item.classes = {};
     item.set = "";
     item.properties = {};
-    item.equipBonuses = {};
-    item.useBonuses = {};
-    item.onHitBonuses = {};
+    item.equipEffects = {};
+    item.useEffects = {};
+    item.onHitEffects = {};
 end
 
 function Data:GetItemIDToParse()
@@ -143,6 +143,8 @@ function Data:ParseItem(itemID)
         self:SetParseEnabled(false); -- temporary
     -- If not, delete temp item, stop parsing and print where error was found and why.
     else
+        Logger:Log("Data:ParseItem Parsing stopped on item:");
+        self:PrintItemInfo(self.tempParsedItem, itemID);
         self.tempParsedItem = nil;
         self:SetParseEnabled(false);
     end
@@ -166,9 +168,7 @@ function Data:ParseItemTooltip(itemID, itemType, itemSubtype, tooltipText)
     return true;
 end
 
-function Data:ParseItemTooltipLine(id, tooltipLine)
-    local itemDB = GU.db.global.itemDB;
-
+function Data:ParseItemTooltipLine(itemID, tooltipLine)
     tooltipLine = tooltipLine:match(GU_REGEX_REMOVE_EDGE_SPACES);
     if (string.len(tooltipLine) == 0) then
         return true;
@@ -199,9 +199,33 @@ function Data:ParseItemTooltipLine(id, tooltipLine)
 
     -- Check common properties (level required, durability etc.)
     local levelRequired = tooltipLine:match(GU_REGEX_LEVEL_REQUIRED);
+    if (levelRequired) then
+        self:AddItemProperty(GU_PROPERTY_LEVEL_REQUIRED, levelRequired);
+        return true;
+    end
+    local durability = tooltipLine:match(GU_REGEX_DURABILITY);
+    if (durability) then
+        self:AddItemProperty(GU_PROPERTY_DURABILITY, durability);
+        return true;
+    end
 
+    -- TODO Check for common equippable items' properties, eg. sets, equipEffects, useEffects, armor
+    
+    -- Armor value: Example: 2345 Armor
+    -- local armor = tooltipLine:match("(%d+) Armor");
+    -- if (armor) then
+    --     self:AddItemProperty(id, PROPERTY_ARMOR, armor);
+    -- end
+
+    -- Now we divide parsing into separate functions to make it more readable and easier to debug.
     local itemType = self.tempParsedItem.type;
     local itemSubtype = self.tempParsedItem.subtype;
+
+    if (itemType == L["TYPE_WEAPON"]) then
+        return self:ParseWeaponItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    elseif (itemType == L["TYPE_ARMOR"]) then
+        return self:ParseArmorItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    end
 
     if (tooltipLine:find(REGEX_SOULBOUND) or tooltipLine:find(REGEX_BOP) or tooltipLine:find(REGEX_BOE)) then
         -- do nothing...
@@ -303,26 +327,104 @@ function Data:ParseItemTooltipLine(id, tooltipLine)
             end
         end
 
-        -- Equip, Chance on hit and Use bonuses. Examples:
+        -- Equip, Chance on hit and Use Effects. Examples:
         -- Equip: Increases damage and healing done by magical spells and effects by up to 29
         -- Chance on hit: Delivers a fatal wound for 240 damage
         -- Use: Restores 375 to 625 mana. (5 Mins Cooldown)
-        local equipBonus = tooltipLine:match("Equip: (.+)");
-        if (equipBonus) then
-            -- Logger:Print("Equip: " .. equipBonus);
+        local equipEffect = tooltipLine:match("Equip: (.+)");
+        if (equipEffect) then
+            -- Logger:Print("Equip: " .. equipEffect);
             self:ProcessItemTooltipLineEquip(id, tooltipLine);
         end
-        local chanceOnHitBonus = tooltipLine:match("Chance on hit: (.+)");
-        if (chanceOnHitBonus) then
-            -- Logger:Print("Chance on hit: " .. chanceOnHitBonus);
+        local chanceOnHitEffect = tooltipLine:match("Chance on hit: (.+)");
+        if (chanceOnHitEffect) then
+            -- Logger:Print("Chance on hit: " .. chanceOnHitEffect);
         end
-        local useBonus = tooltipLine:match("Use: (.+)");
-        if (useBonus) then
-            -- Logger:Print("Use: " .. useBonus);
+        local useEffect = tooltipLine:match("Use: (.+)");
+        if (useEffect) then
+            -- Logger:Print("Use: " .. useEffect);
         end
     end
 end
 
+function Data:ParseWeaponItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    -- Basic weapon damage values and optional type. Example: 57 - 105 Arcane Damage
+    -- Weapon speed. Example: Speed 2.40
+    local minDamage, maxDamage, damageType, weaponSpeed = tooltipLine:match(GU_REGEX_WEAPON_DAMAGE_AND_SPEED);
+    if (minDamage and maxDamage and weaponSpeed) then
+
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_MIN, minDamage);
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_MAX, maxDamage);
+        weaponSpeed = tonumber(weaponSpeed);
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_SPEED, weaponSpeed);
+
+        if (damageType) then
+            if (damageType == "") then
+                damageType = GU_DAMAGE_TYPE_PHYSICAL;
+            elseif (Misc:Contains(GU_ELEMENTAL_DAMAGE_TYPES, damageType)) then
+                self:AddItemProperty(GU_PROPERTY_DAMAGE_TYPE, damageType);
+            else
+                Logger:Err("Data:ParseWeaponItemTooltipLine Found unsupported weapon's elemental damage type: %s", damageType);
+                return false;
+            end
+        end
+
+        return true;
+    end
+
+    -- Extra elemental damage. Example: + 1 - 5 Frost Damage
+    local extraMinDamage, extraMaxDamage, extraDamageType = tooltipLine:match(GU_REGEX_WEAPON_EXTRA_DAMAGE);
+    if (extraMinDamage and extraMaxDamage) then
+        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MIN, extraMinDamage);
+        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MAX, extraMaxDamage);
+
+        if (extraDamageType and extraDamageType ~= "") then
+            if (Misc:Contains(GU_ELEMENTAL_DAMAGE_TYPES, extraDamageType)) then
+                self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_TYPE, extraDamageType);
+            else
+                Logger:Err("Data:ParseWeaponItemTooltipLine Found unsupported weapon's elemental extra damage type: %s", extraDamageType);
+                return false;
+            end
+        end    
+
+        return true;
+    end
+
+    -- Damage per second. Example (42.2 damage per second)
+    local weaponDPS = tooltipLine:match(GU_REGEX_WEAPON_DPS);
+    if (weaponDPS) then
+        self:AddItemProperty(GU_PROPERTY_DPS, weaponDPS);
+        return true;
+    end
+
+    -- Chance on hit, which is valid only for weapons. Example: Chance on hit: Delivers a fatal wound for 240 damage
+    -- This is basically treated as custom property, not indexed, because of the variety
+    -- of wording of similar effects and (in most cases) unknown proc chance.
+    local chanceOnHit = tooltipLine:match(GU_REGEX_WEAPON_CHANCE_ON_HIT);
+    if (chanceOnHit and not Misc:Contains(self.tempParsedItem.onHitEffects, chanceOnHit)) then
+        table.insert(self.tempParsedItem.onHitEffects, chanceOnHit);
+        return true;
+    end
+
+    Logger:Err("Data:ParseWeaponItemTooltipLine Could not parse weapon's tooltip line: %s", tooltipLine);
+    return false;
+end
+
+function Data:ParseArmorItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    if (itemSubtype == L["SUBTYPE_SHIELDS"]) then
+        -- Block value. Example: 39 Block
+        local block = tooltipLine:match(GU_REGEX_ARMOR_BLOCK);
+        if (block) then
+            self:AddItemProperty(GU_PROPERTY_BLOCK, block);
+            return true;
+        end
+        
+        Logger:Err("Data:ParseArmorItemTooltipLine Could not parse shield's tooltip line: %s", tooltipLine);
+        return false;
+    end
+
+    return true;    
+end
 function Data:ProcessItemTooltipLineEquip(id, tooltipLine)
     -- Spell power. Example: Increases damage and healing done by magical spells and effects by up to 29
     local spellPower = tooltipLine:match("Increases damage and healing done by magical spells and effects by up to (%d+)");
@@ -335,5 +437,7 @@ function Data:ProcessItemTooltipLineUse(id, tooltipLine)
 end
 
 function Data:AddItemProperty(propertyKey, propertyValue)
-    self.tempParsedItem.properties[propertyKey] = propertyValue;
+    if (Locales:IsCurrentLocaleMainLocale() and not self.tempParsedItem.properties[propertyKey]) then
+        self.tempParsedItem.properties[propertyKey] = propertyValue;
+    end
 end

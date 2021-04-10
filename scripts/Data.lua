@@ -39,6 +39,15 @@ function Data:Initialize()
         end
     end
 
+    for k, v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
+        v.equipBonuses = nil;
+        v.useBonuses = nil;
+        v.onHitBonuses = nil;
+        v.equipEffects = {};
+        v.useEffects = {};
+        v.onHitEffects = {};
+    end
+
     self:InitProperties();
 end
 
@@ -123,16 +132,16 @@ function Data:ResetScanningDatabase()
     --     classes : {}                 -- list of available classes or empty for all
     --     set : string                 -- Name of the set, if eligible
     --     properties : {}              -- List of name -> value pairs for common properties
-    --     equipBonuses : {}            -- List of unique equip, use and onHit bonuses.
-    --     useBonuses : {}
-    --     onHitBonuses : {}
+    --     equipEffects : {}            -- List of unique equip, use and onHit effects.
+    --     useEffects : {}
+    --     onHitEffects : {}
     -- }
     -- Structure (localised)
     -- itemID = {
     --     name : string
-    --     equipBonuses : {}
-    --     useBonuses : {}
-    --     onHit : {}
+    --     equipEffects : {}
+    --     useEffects : {}
+    --     onHitEffects : {}
     -- }
     scanDB.items = {};
     scanDB.items[MAIN_LOCALE_DB_KEY] = {};
@@ -248,6 +257,24 @@ function Data:PrintItemInfo(item, id)
     Logger:Display("%s", Misc:GenerateFullItemLink(id, item.rarity, item.name));
     Logger:Display("- Status: %s", self:GetItemStatusAsString(scanDB.status[Locales:GetDatabaseLocaleKey()][id]));
     Logger:Display("- Type/Subtype: %s/%s", item.type, item.subtype);
+    Logger:Display("- Set: %s", item.set);
+    Logger:Display("- Classes: %s", Misc:GetTableAsString(item.classes, ", "));
+    Logger:Display("- Properties:");
+    for k,v in pairs(item.properties) do
+        Logger:Display("--- %s: %s", k, tostring(v));
+	end
+    Logger:Display("- Equip effects:");
+    for k,v in pairs(item.equipEffects) do
+        Logger:Display("--- %s: %s", k, tostring(v));
+	end
+    Logger:Display("- Use effects:");
+    for k,v in pairs(item.useEffects) do
+        Logger:Display("--- %s: %s", k, tostring(v));
+	end
+    Logger:Display("- Chance on hit effects:");
+    for k,v in pairs(item.onHitEffects) do
+        Logger:Display("--- %s: %s", k, tostring(v));
+	end
      
     local scanDB = GU.db.global.scanDB;
 

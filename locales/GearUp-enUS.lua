@@ -1,6 +1,7 @@
 -- #TODO Copyright here
 
-local L = GU_AceLocale:NewLocale("GU", "enUS", true, true);
+local L = GU_AceLocale:NewLocale("GU", "enUS", true, false);
+local GL = GU_AceLocale:GetLocale("GU");
 
 if L then
 
@@ -155,9 +156,10 @@ L["CLASS_WARLOCK"] = "Warlock";
 L["CLASS_WARRIOR"] = "Warrior";
 
 ----------------------------------------------------------
--- Damage types
+-- Damage
 ----------------------------------------------------------
 
+L["DAMAGE"] = "Damage";
 L["DAMAGE_TYPE_PHYSICAL"] = "Physical";
 L["DAMAGE_TYPE_ARCANE"] = "Arcane";
 L["DAMAGE_TYPE_FIRE"] = "Fire";
@@ -195,6 +197,16 @@ L["SLOT_SPECIAL"] = "Special";      -- Sigils, Totems, Librams
 -- Properties
 ----------------------------------------------------------
 
+-- Common
+L["PROPERTY_LEVEL_REQUIRED"] = "Requires Level";
+L["PROPERTY_DURABILITY"] = "Durability";
+L["PROPERTY_SOULBOUND"] = "Soulbound";
+L["PROPERTY_BOP"] = "Binds when picked up";
+L["PROPERTY_BOE"] = "Binds when equipped";
+L["PROPERTY_UNIQUE"] = "Unique";
+L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
+
+-- Weapon
 L["PROPERTY_DAMAGE_MIN"] = "Max Damage";
 L["PROPERTY_DAMAGE_MAX"] = "Min Damage";
 L["PROPERTY_DAMAGE_TYPE"] = "Damage Type";
@@ -203,6 +215,8 @@ L["PROPERTY_EXTRA_DAMAGE_MAX"] = "Max Extra Damage";
 L["PROPERTY_EXTRA_DAMAGE_TYPE"] = "Extra Damage Type";
 L["PROPERTY_DAMAGE_SPEED"] = "Speed";
 L["PROPERTY_DPS"] = "DPS";
+
+-- Armor
 L["PROPERTY_ARMOR"] = "Armor";
 L["PROPERTY_BLOCK"] = "Block";
 
@@ -219,13 +233,29 @@ L["PROPERTY_AGILITY"] = "Agility";
 L["PROPERTY_INTELLECT"] = "Intellect";
 L["PROPERTY_SPIRIT"] = "Spirit";
 
-L["PROPERTY_LEVEL_REQUIRED"] = "Requires Level";
-L["PROPERTY_DURABILITY"] = "Durability";
+----------------------------------------------------------
+-- Regex
+----------------------------------------------------------
 
-L["PROPERTY_SOULBOUND"] = "Soulbound";
-L["PROPERTY_BOP"] = "Binds when picked up";
-L["PROPERTY_BOE"] = "Binds when equipped";
-L["PROPERTY_UNIQUE"] = "Unique";
-L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
+-- TODO If trick with GL doesn't work in parsing, write those entries manually.
+
+-- Common
+L["REGEX_UNIQUE_EQUIPPED"] = GL["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)";
+
+L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";
+L["REGEX_DURABILITY"] = GL["PROPERTY_DURABILITY"] .. " %d+ / (%d+)";
+
+-- Equippable
+
+-- Weapon
+L["REGEX_WEAPON_DAMAGE"] = "(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
+L["REGEX_WEAPON_SPEED"] = "Speed%s(%d+%.%d+)";
+L["REGEX_WEAPON_DAMAGE_AND_SPEED"] = GL["REGEX_WEAPON_DAMAGE"] .. "%s+" .. GL["REGEX_WEAPON_SPEED"];
+L["REGEX_WEAPON_EXTRA_DAMAGE"] = "%+%s(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
+L["REGEX_WEAPON_DPS"] = "%((%d+%.%d)%sdamage per second%)";
+L["REGEX_WEAPON_CHANCE_ON_HIT"] = "Chance on hit: (.+)";
+
+-- Armor
+L["REGEX_ARMOR_BLOCK"] = "(%d+) " .. GL["PROPERTY_BLOCK"];
 
 end

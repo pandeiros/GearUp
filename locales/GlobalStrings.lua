@@ -166,6 +166,17 @@ GU_DAMAGE_TYPE_NATURE = "Nature";
 GU_DAMAGE_TYPE_HOLY = "Holy";
 GU_DAMAGE_TYPE_SHADOW = "Shadow";
 
+-- This should contain all elemental damage types AND their varieties (if locale has adjective declension)
+GU_ELEMENTAL_DAMAGE_TYPES = {
+    L["DAMAGE_TYPE_ARCANE"],
+    L["DAMAGE_TYPE_FIRE"],
+    L["DAMAGE_TYPE_FROST"],
+    L["DAMAGE_TYPE_NATURE"],
+    L["DAMAGE_TYPE_HOLY"],
+    L["DAMAGE_TYPE_SHADOW"]
+    -- HERE INSERT ALL VARIETIES FOR ALL LOCALES NOT COVERED BY L["..."]
+}
+
 ----------------------------------------------------------
 -- Equipment slots
 ----------------------------------------------------------
@@ -195,6 +206,16 @@ GU_SLOT_SPECIAL = "Special";
 -- Properties
 ----------------------------------------------------------
 
+-- Common
+GU_PROPERTY_LEVEL_REQUIRED = "Requires Level";
+GU_PROPERTY_DURABILITY = "Durability";
+GU_PROPERTY_SOULBOUND = "Soulbound";            -- TODO: potentially not used.
+GU_PROPERTY_BOP = "Binds when picked up";
+GU_PROPERTY_BOE = "Binds when equipped";
+GU_PROPERTY_UNIQUE = "Unique";
+GU_PROPERTY_UNIQUE_EQUIPPED = "Unique-Equipped";
+
+-- Weapon
 GU_PROPERTY_DAMAGE_MIN = "Max Damage";
 GU_PROPERTY_DAMAGE_MAX = "Min Damage";
 GU_PROPERTY_DAMAGE_TYPE = "Damage Type";
@@ -203,6 +224,8 @@ GU_PROPERTY_EXTRA_DAMAGE_MAX = "Max Extra Damage";
 GU_PROPERTY_EXTRA_DAMAGE_TYPE = "Extra Damage Type";
 GU_PROPERTY_DAMAGE_SPEED = "Speed";
 GU_PROPERTY_DPS = "DPS";
+
+-- Armor
 GU_PROPERTY_ARMOR = "Armor";
 GU_PROPERTY_BLOCK = "Block";
 
@@ -219,15 +242,6 @@ GU_PROPERTY_AGILITY = "Agility";
 GU_PROPERTY_INTELLECT = "Intellect";
 GU_PROPERTY_SPIRIT = "Spirit";
 
-GU_PROPERTY_LEVEL_REQUIRED = "Requires Level";
-GU_PROPERTY_DURABILITY = "Durability";
-
-GU_PROPERTY_SOULBOUND = "Soulbound";            -- TODO: potentially not used.
-GU_PROPERTY_BOP = "Binds when picked up";
-GU_PROPERTY_BOE = "Binds when equipped";
-GU_PROPERTY_UNIQUE = "Unique";
-GU_PROPERTY_UNIQUE_EQUIPPED = "Unique-Equipped";
-
 ----------------------------------------------------------
 -- Regex
 ----------------------------------------------------------
@@ -240,16 +254,29 @@ GU_REGEX_REMOVE_EDGE_SPACES = GetExactRegexString("%s*(.*)%s*");
 
 if L then
 
+-- Common
 GU_REGEX_SOULBOUND = GetExactRegexString(L["PROPERTY_SOULBOUND"]);
 GU_REGEX_BOP = GetExactRegexString(L["PROPERTY_BOP"]);
 GU_REGEX_BOE = GetExactRegexString(L["PROPERTY_BOE"]);
 GU_REGEX_UNIQUE = GetExactRegexString(L["PROPERTY_UNIQUE"]);
-GU_REGEX_UNIQUE_EQUIPPED = GetExactRegexString(L["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)");
+GU_REGEX_UNIQUE_EQUIPPED = GetExactRegexString(L["REGEX_UNIQUE_EQUIPPED"]);
 
-GU_REGEX_LEVEL_REQUIRED = GetExactRegexString(L["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)");
-GU_REGEX_DURABILITY = GetExactRegexString(L["PROPERTY_DURABILITY"] .. " (%d+)");
+GU_REGEX_LEVEL_REQUIRED = GetExactRegexString(L["REGEX_LEVEL_REQUIRED"]);
+GU_REGEX_DURABILITY = GetExactRegexString(L["REGEX_DURABILITY"]);
 
-GU_REGEX_HEAD = GetExactRegexString(L["REGEX_HEAD"] .. ".*");
+-- Equippable
+
+-- Weapon
+GU_REGEX_WEAPON_DAMAGE_AND_SPEED = GetExactRegexString(L["REGEX_WEAPON_DAMAGE_AND_SPEED"]);
+GU_REGEX_WEAPON_EXTRA_DAMAGE = GetExactRegexString(L["REGEX_WEAPON_EXTRA_DAMAGE"]);
+GU_REGEX_WEAPON_DPS = GetExactRegexString(L["REGEX_WEAPON_DPS"]);
+GU_REGEX_WEAPON_CHANCE_ON_HIT = GetExactRegexString(L["REGEX_WEAPON_CHANCE_ON_HIT"]);
+
+-- Armor
+GU_REGEX_ARMOR_BLOCK = GetExactRegexString(L["REGEX_ARMOR_BLOCK"]);
+
+-- Other
+-- GU_REGEX_HEAD = GetExactRegexString(L["REGEX_HEAD"] .. ".*");
 GU_REGEX_NECK = GetExactRegexString(L["SLOT_NECK"]);
 GU_REGEX_SHOULDER = GetExactRegexString(L["SLOT_SHOULDER"] .. ".*");
 GU_REGEX_BACK = GetExactRegexString(L["SLOT_BACK"]);

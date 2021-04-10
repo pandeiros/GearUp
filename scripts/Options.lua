@@ -154,7 +154,8 @@ function GU:TestCommand(info)
     -- Data:SerializeTest();
     -- print(Data:GetTooltipText(Misc:GenerateFullItemLink(21330, 4, "Conqueror's Spaulders")));
     -- Data:DeleteAllItemTooltips();
-    -- Data:PrintItemInfoByID(19822);
+    Data:PrintItemInfoByID(11811);
+    Data:PrintItemInfoByID(2040);
     -- Data:PrintScannedItemsWithEmptyTooltip();
 end
 

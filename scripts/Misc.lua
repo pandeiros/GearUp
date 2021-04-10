@@ -215,6 +215,28 @@ end
 -- Objects/Tables
 ----------------------------------------------------------
 
+-- This is only valid for tables with string values.
+function Misc:GetTableAsString(t, delimiter)
+	if (not t) then
+		return "";
+	end
+	if (not delimiter) then
+		delimiter = " ";
+	end
+	
+	local s = "";
+	local firstItem = false;
+	for k,v in pairs(t) do
+		if (not firstItem) then
+			s = s .. delimiter;
+		end
+		s = s .. v;
+		firstItem = true;
+	end
+
+	return s;
+end
+
 function Misc:DeepCopy(orig)
     local orig_type = type(orig)
     local copy

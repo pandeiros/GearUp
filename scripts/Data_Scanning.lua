@@ -491,18 +491,18 @@ function Data:CreateItemStructure(itemID, itemName, itemLink, itemRarity, itemLe
             classes = {},
             set = "",
             properties = {},
-            equipBonuses = {},
-            useBonuses = {},
-            onHitBonuses = {}
+            equipEffects = {},
+            useEffects = {},
+            onHitEffects = {}
         }
 
         return item;
     else
         local item = {
             name = itemName,
-            equipBonuses = {},
-            useBonuses = {},
-            onHitBonuses = {}
+            equipEffects = {},
+            useEffects = {},
+            onHitEffects = {}
         }
 
         return item;
