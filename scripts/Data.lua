@@ -78,9 +78,8 @@ end
 function Data:DoTasks(taskCount)
     for _ = 1,taskCount do
         self:ScanItems();
+        self:ParseItems();
     end
-
-    self:ParseItems();
 end
 
 function Data:Cleanup()
@@ -261,8 +260,10 @@ function Data:PrintItemInfo(item, id)
     Logger:Display("%s", Misc:GenerateFullItemLink(id, item.rarity, item.name));
     Logger:Display("- Status: %s", self:GetItemStatusAsString(scanDB.status[Locales:GetDatabaseLocaleKey()][id]));
     Logger:Display("- Type/Subtype: %s/%s", item.type, item.subtype);
+    Logger:Display("- Equip location: %s", item.equipLocation);
     Logger:Display("- Set: %s", item.set);
-    Logger:Display("- Classes: %s", Misc:GetTableAsString(item.classes, ", "));
+    Logger:Display("- Classes: %s", Misc:GetTableAsString(item.classes or {}, ", "));
+    Logger:Display("- Races: %s", Misc:GetTableAsString(item.races or {}, ", "));
     Logger:Display("- Random enchantment: %s", Misc:BoolToString(item.randomEnchantment or false));
     Logger:Display("- Properties:");
     for k,v in pairs(item.properties) do

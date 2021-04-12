@@ -225,13 +225,13 @@ function Misc:GetTableAsString(t, delimiter)
 	end
 	
 	local s = "";
-	local firstItem = false;
+	local firstItem = true;
 	for k,v in pairs(t) do
 		if (not firstItem) then
 			s = s .. delimiter;
 		end
 		s = s .. v;
-		firstItem = true;
+		firstItem = false;
 	end
 
 	return s;
