@@ -94,6 +94,8 @@ L["SUBTYPE_HERBALISM"] = "Herbalism";
 L["SUBTYPE_INSCRIPTION"] = "Inscription";
 L["SUBTYPE_JEWELCRAFTING"] = "Jewelcrafting";
 L["SUBTYPE_LEATHERWORKING"] = "Leatherworking";
+L["SUBTYPE_MINING"] = "Mining";
+L["SUBTYPE_SKINNING"] = "Skinning";
 L["SUBTYPE_TAILORING"] = "Tailoring";
 
 L["SUBTYPE_ARROW"] = "Arrow";
@@ -259,6 +261,36 @@ L["PROPERTY_FACTION_HORDE_THUNDER_BLUFF"] = "Thunder Bluff";
 L["PROPERTY_FACTION_HORDE_UNDERCITY"] = "Undercity";
 L["PROPERTY_FACTION_HORDE_DARKSPEAR_TROLLS"] = "Darkspear Trolls";
 
+L["PROPERTY_PVP_RANK_PRIVATE"] = "Private";
+L["PROPERTY_PVP_RANK_CORPORAL"] = "Corporal";
+L["PROPERTY_PVP_RANK_SERGEANT"] = "Sergeant";
+L["PROPERTY_PVP_RANK_MASTER_SERGEANT"] = "Master Sergeant";
+L["PROPERTY_PVP_RANK_SERGEANT_MAJOR"] = "Sergeant Major";
+L["PROPERTY_PVP_RANK_KNIGHT"] = "Knight";
+L["PROPERTY_PVP_RANK_KNIGHT_LIEUTENANT"] = "Knight-Lieutenant";
+L["PROPERTY_PVP_RANK_KNIGHT_CAPTAIN"] = "Knight-Captain";
+L["PROPERTY_PVP_RANK_KNIGHT_CHAMPION"] = "Knight-Champion";
+L["PROPERTY_PVP_RANK_LIEUTENANT_COMMANDER"] = "Lieutenant Commander";
+L["PROPERTY_PVP_RANK_COMMANDER"] = "Commander";
+L["PROPERTY_PVP_RANK_MARSHAL"] = "Marshal";
+L["PROPERTY_PVP_RANK_FIELD_MARSHAL"] = "Field Marshal";
+L["PROPERTY_PVP_RANK_GRAND_MARSHALL"] = "Grand Marshal";
+
+L["PROPERTY_PVP_RANK_SCOUT"] = "Scout";
+L["PROPERTY_PVP_RANK_GRUNT"] = "Grunt";
+L["PROPERTY_PVP_RANK_SERGEANT"] = "Sergeant";
+L["PROPERTY_PVP_RANK_SENIOR_SERGEANT"] = "Senior Sergeant";
+L["PROPERTY_PVP_RANK_FIRST_SERGEANT"] = "First Sergeant";
+L["PROPERTY_PVP_RANK_STONE_GUARD"] = "Stone Guard";
+L["PROPERTY_PVP_RANK_BLOOD_GUARD"] = "Blood Guard";
+L["PROPERTY_PVP_RANK_LEGIONNAIRE"] = "Legionnaire";
+L["PROPERTY_PVP_RANK_CENTURION"] = "Centurion";
+L["PROPERTY_PVP_RANK_CHAMPION"] = "Champion";
+L["PROPERTY_PVP_RANK_LIEUTENANT_GENERAL"] = "Lieutenant General";
+L["PROPERTY_PVP_RANK_GENERAL"] = "General";
+L["PROPERTY_PVP_RANK_WARLORD"] = "Warlord";
+L["PROPERTY_PVP_RANK_HIGH_WARLORD"] = "High Warlord";
+
 -- Weapon
 L["PROPERTY_DAMAGE_MIN"] = "Max Damage";
 L["PROPERTY_DAMAGE_MAX"] = "Min Damage";
@@ -338,6 +370,7 @@ L["PROPERTY_SPIRIT"] = "Spirit";
 L["PROPERTY_ENEMY_TYPE_UNDEAD"] = "Undead";
 L["PROPERTY_ENEMY_TYPE_DRAGONS"] = "Dragons";
 L["PROPERTY_ENEMY_TYPE_BEASTS"] = "Beasts";
+L["PROPERTY_ENEMY_TYPE_DEMONS"] = "Demons";
 
 L["PROPERTY_WEAPON_SKILL_AXES"] = "Axes";
 L["PROPERTY_WEAPON_SKILL_BOWS"] = "Bows";
@@ -363,6 +396,7 @@ L["PROPERTY_WEAPON_SKILL_SWORDS_2H"] = "Two-handed Swords";
 
 -- Common
 L["REGEX_UNIQUE_EQUIPPED"] = GL["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)";
+L["REGEX_UNIQUE"] = GL["PROPERTY_UNIQUE"] .. "%s?%(?(%d*)%)?";
 
 L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";
 L["REGEX_DURABILITY"] = GL["PROPERTY_DURABILITY"] .. " %d+ / (%d+)";
@@ -377,35 +411,48 @@ L["REGEX_REPUTATION_REQUIREMENT"] = "Requires (.+) %- (%a+)";
 L["REGEX_PROFESSION_REQUIREMENT"] = "Requires ([%a%s]+) %((%d+)%)";
 L["REGEX_CHARGES"] = "(%d+) Charges";
 L["REGEX_DETAILS"] = "<Right Click for Details>";
+L["REGEX_PVP_RANK_REQUIREMENT"] = "Requires ([%a%s%-]+)";
 
 -- Equippable
 L["REGEX_EQUIP_ATTRIBUTE"] = "([%+%-])(%d+)%s(%a+)%s*(%a*)";
-L["REGEX_EQUIP_SET_NAME"] = "([%a%s%-]+) %(0/(%d+)%)";
-L["REGEX_EQUIP_SET_BONUS"] = "%((%d+)%) " .. GL["PROPERTY_SET"] .. ": (.+)-"
+L["REGEX_EQUIP_SET_NAME"] = "([%a%s%-']+) %(0/(%d+)%)";
+L["REGEX_EQUIP_SET_BONUS"] = "%((%d+)%) " .. GL["PROPERTY_SET"] .. ": (.+)%."
 L["REGEX_EQUIP_SLOT_AND_TYPE"] = "([%a%-]+)%s?([%a%-]*)%s?([%a%-]*)%s?([%a%-]*)";
 
-L["REGEX_EQUIP_EQUIP_EFFECT"] = "Equip: (.+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER"] = "Increases damage and healing done by magical spells and effects by up to (%d+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE"] = "Increases damage done by (%a+) spells and effects by up to (%d+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_HEALING"] = "Increases healing done by spells and effects by up to (%d+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_SPELL_CRITICAL_CHANCE"] = "Improves your chance to get a critical strike with spells by (%d+)%%";
-L["REGEX_EQUIP_EQUIP_EFFECT_HPS"] = "Restores (%d+) health every (%d+%.?%d-) sec";
-L["REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE"] = "Improves your chance to get a critical strike by (%d+)%%";
-L["REGEX_EQUIP_EQUIP_EFFECT_AP"] = "%+(%d+) Attack Power";
-L["REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE"] = "%+(%d+) Attack Power when fighting (%a+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE2"] = "Attack Power increased by (%d+) when fighting (%a+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_RANGED_ATTACK_SPEED"] = "Increases ranged attack speed by (%d+)%%";
-L["REGEX_EQUIP_EQUIP_EFFECT_DEFENSE"] = "Increased Defense %+(%d+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_BLOCK_CHANCE"] = "Increases your chance to block attacks with a shield by (%d+)%%";
-L["REGEX_EQUIP_EQUIP_EFFECT_DODGE_CHANCE"] = "Increases your chance to dodge an attack by (%d+)%%";
-L["REGEX_EQUIP_EQUIP_EFFECT_WEAPON_SKILL"] = "Increased ([%a%-%s]+) %+(%d+)";
-L["REGEX_EQUIP_EQUIP_EFFECT_PROFESSION_SKILL"] = "Increased ([%a%-%s]+) %+(%d+)";
+L["REGEX_EQUIP_EFFECT"] = "Equip: (.+)";
+L["REGEX_EQUIP_EFFECT_SPELL_POWER"] = "Increases damage and healing done by magical spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EFFECT_SPELL_DAMAGE_TYPE"] = "Increases damage done by (%a+) spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EFFECT_SPELL_HEALING"] = "Increases healing done by spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EFFECT_SPELL_CRITICAL_STRIKE_CHANCE"] = "Improves your chance to get a critical strike with spells by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_SPELL_HIT_CHANCE"] = "Improves your chance to hit with spells by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_SPELL_RESISTANCE_DECREASE"] = "Decreases the magical resistances of your spell targets by (%d)";
+L["REGEX_EQUIP_EFFECT_HPS"] = "Restores (%d+) health every (%d+%.?%d-) sec";
+L["REGEX_EQUIP_EFFECT_HP5"] = "Restores (%d+) health per 5 sec";
+L["REGEX_EQUIP_EFFECT_MP5"] = "Restores (%d+) mana per 5 sec";
+L["REGEX_EQUIP_EFFECT_CRITICAL_STRIKE_CHANCE"] = "Improves your chance to get a critical strike by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_HIT_CHANCE"] = "Improves your chance to hit by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_AP"] = "%+(%d+) Attack Power";
+L["REGEX_EQUIP_EFFECT_AP_TYPE"] = "%+(%d+) Attack Power when fighting (%a+)";
+L["REGEX_EQUIP_EFFECT_AP_TYPE2"] = "Attack Power increased by (%d+) when fighting (%a+)";
+L["REGEX_EQUIP_EFFECT_RANGED_ATTACK_SPEED"] = "Increases ranged attack speed by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_RANGED_ATTACK_POWER"] = "%+(%d+) ranged Attack Power";
+L["REGEX_EQUIP_EFFECT_DEFENSE"] = "Increased Defense %+(%d+)";
+L["REGEX_EQUIP_EFFECT_BLOCK_CHANCE"] = "Increases your chance to block attacks with a shield by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_BLOCK_VALUE"] = "Increases the block value of your shield by (%d+)";
+L["REGEX_EQUIP_EFFECT_DODGE_CHANCE"] = "Increases your chance to dodge an attack by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_PARRY_CHANCE"] = "(%a+) your chance to parry an attack by (%d+)%%";
+L["REGEX_EQUIP_EFFECT_WEAPON_SKILL"] = "Increased ([%a%-%s]+) %+(%d+)";
+L["REGEX_EQUIP_EFFECT_PROFESSION_SKILL"] = "Increased ([%a%-%s]+) %+(%d+)";
+L["REGEX_EQUIP_EFFECT_PROFESSION_SKILL2"] = "([%a%-%s]+) %+(%d+)";
 
 -- Weapon
 L["REGEX_WEAPON_DAMAGE"] = "(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
+L["REGEX_WEAPON_DAMAGE2"] = "(%d+)%s*(%a*)%sDamage";
 L["REGEX_WEAPON_SPEED"] = "Speed%s(%d+%.%d+)";
 L["REGEX_WEAPON_DAMAGE_AND_SPEED"] = GL["REGEX_WEAPON_DAMAGE"] .. "%s+" .. GL["REGEX_WEAPON_SPEED"];
+L["REGEX_WEAPON_DAMAGE_AND_SPEED2"] = GL["REGEX_WEAPON_DAMAGE2"] .. "%s+" .. GL["REGEX_WEAPON_SPEED"];
 L["REGEX_WEAPON_EXTRA_DAMAGE"] = "%+%s(%d+)%s%-%s(%d+)%s*(%a*)%sDamage";
+L["REGEX_WEAPON_EXTRA_DAMAGE2"] = "%+(%d+) (%a+) Damage";
 L["REGEX_WEAPON_DPS"] = "%((%d+%.?%d-)%sdamage per second%)";
 L["REGEX_WEAPON_CHANCE_ON_HIT"] = "Chance on hit: (.+)";
 
@@ -425,6 +472,8 @@ L["REGEX_CONSUMABLE_POISON1"] = "Each strike has a %d+%% chance of poisoning the
 L["REGEX_CONSUMABLE_POISON2"] = "Each strike has a %d+%% chance of poisoning the enemy, slowing their movement speed by %d+%% for %d+ sec%.";
 L["REGEX_CONSUMABLE_POISON3"] = "Each strike has a %d+%% chance of poisoning the enemy, increasing their casting time by %d+%% for %d+ sec%.  (%d+) charges%.";
 L["REGEX_CONSUMABLE_POISON4"] = "Each strike has a chance of poisoning the enemy which instantly inflicts %d+%-%d+ damage%. %(%d+ Sec Cooldown%)";
+L["REGEX_CONSUMABLE_POISON5"] = "Each strike has a %d+%% chance of poisoning the enemy which instantly inflicts %d+ to %d+ Nature damage%.  (%d+) charges%.";
+L["REGEX_CONSUMABLE_POISON6"] = "Each strike has a %d+%% chance of poisoning the enemy, reducing all healing effects used on them by %d+ for %d+ sec%.  Stacks up to %d+ times on a single target%.  (%d+) charges%.";
 L["REGEX_CONSUMABLE_SUBTLETY_REQUIREMENT"] = "Requires Subtlety %((%d+)%)";
 
 -- Quiver

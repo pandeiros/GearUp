@@ -26,7 +26,7 @@ function Data:ValidateScannedItems()
         if (v == GU_ITEM_STATUS_SCANNED or v == GU_ITEM_STATUS_PARSED) then
             if (scanItemsDB[k] == nil 
                 or scanItemsDB[k] ~= nil and scanItemsDB[k].name ~= nil and not Data:ValidateItem(scanItemsDB[k].name, k)) then
-                self:MarkItemIDAsDeprecated(k);
+                self:MarkItemIDAsDeprecated(k, scanItemsDB[k].name);
                 count = count + 1;
             end
         end

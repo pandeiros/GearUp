@@ -233,6 +233,11 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
     local itemType = self.tempParsedItem.type;
     local itemSubtype = self.tempParsedItem.subtype;
 
+    --------------------------------------------------------------
+    -- TODO Convert all number parameters using "tonumber".
+    -- TODO Verify recipes items once database is exported.
+    --------------------------------------------------------------
+
     -- Need to check cause recipes can have Bind when X properties.
     if (itemType ~= L["TYPE_RECIPE"] or not self.tempParsedProfessionRequirement) then
         -- Check binding and uniqueness.
@@ -240,7 +245,9 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
             Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_SOULBOUND");
             return true;    -- do nothing
         elseif (tooltipLine:find(GU_REGEX_UNIQUE)) then
-            self:AddItemProperty(GU_PROPERTY_UNIQUE, true);
+            local uniqueCount = tooltipLine:match(GU_REGEX_UNIQUE);
+            uniqueCount = tonumber(uniqueCount) or 1;
+            self:AddItemProperty(GU_PROPERTY_UNIQUE, uniqueCount);
             Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_UNIQUE");
             return true;
         elseif (tooltipLine:find(GU_REGEX_UNIQUE_EQUIPPED)) then
@@ -269,6 +276,9 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
     local useEffect = tooltipLine:match(GU_REGEX_USE_EFFECT);
     if (useEffect) then
         Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_USE_EFFECT");
+        if (itemType == L["TYPE_RECIPE"] and itemSubtype == L["SUBTYPE_BOOK"]) then
+            self.tempParsedProfessionRequirement = true;
+        end
         return self:ProcessItemTooltipLineUseEffect(itemID, itemSubtype, useEffect);
     end
 
@@ -409,6 +419,23 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
         end
     end
 
+    -- PVP rank requirement. Example: Requires Grand Marshal
+    if (itemType ~= L["TYPE_RECIPE"]) then
+        local pvpRank = tooltipLine:match(GU_REGEX_PVP_RANK_REQUIREMENT);
+        if (pvpRank) then
+            if (Misc:Contains(GU_PROPERTY_RIDING_SKILLS, pvpRank) or pvpRank == "Poisons") then
+                -- DO NOTHING
+            elseif (Misc:Contains(GU_PROPERTY_PVP_RANKS, pvpRank)) then
+                self:AddItemProperty(GU_PROPERTY_PVP_RANK, pvpRank);
+                Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_PVP_RANK_REQUIREMENT");
+                return true;
+            else
+                Logger:Err("Data:ParseItemTooltipLine Invalid pvp rank found: %s", pvpRank);
+                return false;
+            end
+        end
+    end
+
     -- Conjured item.
     local conjuredItem = tooltipLine:match(GU_REGEX_CONJURED_ITEM);
     if (conjuredItem) then
@@ -479,14 +506,14 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
         end
 
         -- Equip Effects. Example: Equip: Increases damage and healing done by magical spells and effects by up to 29
-        local equipEffect = tooltipLine:match(GU_REGEX_EQUIP_EQUIP_EFFECT);
+        local equipEffect = tooltipLine:match(GU_REGEX_EQUIP_EFFECT);
         if (equipEffect) then
-            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_EQUIP_EQUIP_EFFECT");
+            Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_EQUIP_EFFECT");
             return self:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect);
         end
 
         -- Attributes. Example: +8 Stamina | +16 Intellect
-        -- Resistances. Example: + 15 Fire Resistance
+        -- Resistances. Example: +15 Fire Resistance
         local sign, attributeBonus, attributeName, resistance = tooltipLine:match(GU_REGEX_EQUIP_ATTRIBUTE);
         if (sign and attributeBonus and attributeName) then
             Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_EQUIP_ATTRIBUTE");
@@ -503,7 +530,9 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
                     return false;
                 end
             else
-                if (Misc:Contains(GU_PROPERTY_ATTRIBUTES, attributeName)) then
+                if (Misc:Contains(GU_DAMAGE_TYPES, attributeName) and resistance == "Damage" and itemType == L["TYPE_WEAPON"]) then
+                    -- DO NOTHING. This will processed in weapon's extra damage.
+                elseif (Misc:Contains(GU_PROPERTY_ATTRIBUTES, attributeName)) then
                     self:AddItemProperty(attributeName, attributeBonus);
                     return true;
                 else
@@ -584,6 +613,7 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
                     if (Misc:Contains(GU_PROPERTY_WEAPON_ONE_HAND_SLOTS, slot)) then
                         self:AddItemProperty(slot, true);
                     end
+                    return true;
                 end
             -- Here it's getting trickier.
             -- First we check for obvious one: Held In Off-hand
@@ -673,6 +703,8 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
         result = self:ParseQuiverItemTooltipLine(itemID, itemSubtype, tooltipLine);
     elseif (itemType == L["TYPE_PROJECTILE"]) then
         result = self:ParseProjectileItemTooltipLine(itemID, itemSubtype, tooltipLine);
+    elseif (itemType == L["TYPE_TRADE_GOODS"]) then
+        result = self:ParseTradeGoodsItemTooltipLine(itemID, itemSubtype, tooltipLine);
     end
 
     if (not result) then
@@ -708,11 +740,35 @@ function Data:ParseWeaponItemTooltipLine(itemID, itemSubtype, tooltipLine)
         return true;
     end
 
+    -- Basic weapon damage version #2. Example: 20 Damage
+    local fixedDamage = "";
+    fixedDamage, damageType, weaponSpeed = tooltipLine:match(GU_REGEX_WEAPON_DAMAGE_AND_SPEED2);
+    if (fixedDamage and weaponSpeed) then
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_MIN, fixedDamage);
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_MAX, fixedDamage);
+        weaponSpeed = tonumber(weaponSpeed);
+        self:AddItemProperty(GU_PROPERTY_DAMAGE_SPEED, weaponSpeed);
+
+        if (damageType) then
+            if (damageType == "") then
+                damageType = GU_DAMAGE_TYPE_PHYSICAL;
+            elseif (Misc:Contains(GU_DAMAGE_TYPES, damageType)) then
+                self:AddItemProperty(GU_PROPERTY_DAMAGE_TYPE, damageType);
+            else
+                Logger:Err("Data:ParseWeaponItemTooltipLine Found unsupported weapon's elemental damage type: %s", damageType);
+                return false;
+            end
+        end
+
+        Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_WEAPON_DAMAGE_AND_SPEED2");
+        return true;
+    end
+
     -- Extra elemental damage. Example: + 1 - 5 Frost Damage
     local extraMinDamage, extraMaxDamage, extraDamageType = tooltipLine:match(GU_REGEX_WEAPON_EXTRA_DAMAGE);
     if (extraMinDamage and extraMaxDamage) then
-        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MIN, extraMinDamage);
-        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MAX, extraMaxDamage);
+        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MIN, tonumber(extraMinDamage));
+        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_MAX, tonumber(extraMaxDamage));
 
         if (extraDamageType and extraDamageType ~= "") then
             if (Misc:Contains(GU_DAMAGE_TYPES, extraDamageType)) then
@@ -724,6 +780,22 @@ function Data:ParseWeaponItemTooltipLine(itemID, itemSubtype, tooltipLine)
         end    
 
         Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_WEAPON_EXTRA_DAMAGE");
+        return true;
+    end
+
+    -- Extra elemental damage 2. Example: +5 Frost Damage
+    local extraDamage2, extraDamageType2 = tooltipLine:match(GU_REGEX_WEAPON_EXTRA_DAMAGE2);
+    if (extraDamage2 and extraDamageType2) then
+        self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE, tonumber(extraDamage2));
+
+        if (Misc:Contains(GU_DAMAGE_TYPES, extraDamageType2)) then
+            self:AddItemProperty(GU_PROPERTY_EXTRA_DAMAGE_TYPE, extraDamageType2);
+        else
+            Logger:Err("Data:ParseWeaponItemTooltipLine Found unsupported weapon's elemental extra damage type: %s", extraDamageType2);
+            return false;
+        end
+
+        Logger:Verb("Tooltip line '%s' matched against regex %s", tooltipLine, "GU_REGEX_WEAPON_EXTRA_DAMAGE2");
         return true;
     end
 
@@ -832,6 +904,17 @@ function Data:ParseMiscItemTooltipLine(itemID, itemSubtype, tooltipLine)
         end
     end
 
+    local customTooltipLines = {
+        "Requires Tazan's Key"
+    }
+
+    for k,v in pairs(customTooltipLines) do
+        if (tooltipLine == v) then
+            Logger:Verb("Tooltip line '%s' matched against custom misc regex %s", tooltipLine, v);
+            return true;
+        end
+    end
+
     Logger:Err("Data:ParseMiscItemTooltipLine Could not parse misc's tooltip line: %s", tooltipLine);
     return false;
 end
@@ -861,7 +944,9 @@ function Data:ParseConsumableItemTooltipLine(itemID, itemSubtype, tooltipLine)
         GU_REGEX_CONSUMABLE_POISON1,
         GU_REGEX_CONSUMABLE_POISON2,
         GU_REGEX_CONSUMABLE_POISON3,
-        GU_REGEX_CONSUMABLE_POISON4
+        GU_REGEX_CONSUMABLE_POISON4,
+        GU_REGEX_CONSUMABLE_POISON5,
+        GU_REGEX_CONSUMABLE_POISON6
     }
 
     for k,v in pairs(poisons) do
@@ -917,30 +1002,40 @@ function Data:ParseProjectileItemTooltipLine(itemID, itemSubtype, tooltipLine)
     return false;
 end
 
+function Data:ParseTradeGoodsItemTooltipLine(itemID, itemSubtype, tooltipLine)
+    -- Custom tooltip lines to ignore
+    if (itemID == 9719 and tooltipLine:match(GU_REGEX_WEAPON_DAMAGE)) then
+        return true;
+    end
+
+    Logger:Err("Data:ParseTradeGoodsItemTooltipLine Could not parse trade goods' tooltip line: %s", tooltipLine);
+    return false;
+end
+
 function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect)
     -- Spell power. Example: Increases damage and healing done by magical spells and effects by up to 29
-    local spellPower = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER);
+    local spellPower = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_POWER);
     if (spellPower) then
         self:AddItemProperty(GU_PROPERTY_SPELL_POWER, spellPower);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_POWER");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_POWER");
         return true;
     end
     
     -- Spell healing. Example: Increases healing done by spells and effects by up to 21
-    local spellHealing = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_HEALING);
+    local spellHealing = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_HEALING);
     if (spellHealing) then
         self:AddItemProperty(GU_PROPERTY_SPELL_HEALING, spellHealing);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_HEALING");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_HEALING");
         return true;
     end
 
     -- Spell damage for type. Example: Increases damage done by Frost spells and effects by up to 21
-    local spellDamageType, spellDamageTypeValue = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE);
+    local spellDamageType, spellDamageTypeValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_DAMAGE_TYPE);
     if (spellDamageType and spellDamageTypeValue) then
         if (Misc:Contains(GU_DAMAGE_TYPES, spellDamageType)) then
             local property = spellDamageType .. " " .. GU_PROPERTY_SPELL_DAMAGE;
             self:AddItemProperty(property, spellDamageTypeValue);
-            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_DAMAGE_TYPE");
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_DAMAGE_TYPE");
             return true;
         else
             Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported spell damage type found '%s' for: %s", spellDamageType, equipEffect);
@@ -948,40 +1043,81 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         end
     end
     
-    local spellCritChance = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_CRITICAL_CHANCE);
+    -- Spell critical strike chance. Example: Improves your chance to get a critical strike with spells by 1%.
+    local spellCritChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_CRITICAL_STRIKE_CHANCE);
     if (spellCritChance) then
-        self:AddItemProperty(GU_PROPERTY_SPELL_CRITICAL_CHANCE, spellCritChance);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_SPELL_CRITICAL_CHANCE");
+        self:AddItemProperty(GU_PROPERTY_SPELL_CRITICAL_STRIKE_CHANCE, spellCritChance);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_CRITICAL_STRIKE_CHANCE");
+        return true;
+    end
+    
+    -- Spell hit chance. Example: Improves your chance to hit with spells by 1%.
+    local spellHitChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_HIT_CHANCE);
+    if (spellHitChance) then
+        self:AddItemProperty(GU_PROPERTY_SPELL_HIT_CHANCE, spellHitChance);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_HIT_CHANCE");
+        return true;
+    end
+    
+    -- Spell resistance decrease. Example: Decreases the magical resistances of your spell targets by 10.
+    local spellResistanceDecrease = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_RESISTANCE_DECREASE);
+    if (spellResistanceDecrease) then
+        self:AddItemProperty(GU_PROPERTY_SPELL_RESISTANCE_DECREASE, spellResistanceDecrease);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_SPELL_RESISTANCE_DECREASE");
         return true;
     end
 
     -- Healing per second. Example: Restores 3 health every 4 sec
-    local healthRestored, healthSeconds = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_HPS);
+    local healthRestored, healthSeconds = equipEffect:match(GU_REGEX_EQUIP_EFFECT_HPS);
     if (healthRestored and healthSeconds) then
         local hps = tonumber(healthRestored) / tonumber(healthSeconds);
         self:AddItemProperty(GU_PROPERTY_HPS, hps);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_HPS");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_HPS");
         return true;
     end
 
-    -- Critical chance. Example: Improves your chance to get a critical strike by 1%.
-    local critStrikeChance = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE);
+    -- Health per 5 second. Example: Restores 5 health per 5 sec
+    local hp5 = equipEffect:match(GU_REGEX_EQUIP_EFFECT_HP5);
+    if (hp5) then
+        self:AddItemProperty(GU_PROPERTY_HP5, hp5);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_HP5");
+        return true;
+    end
+
+    -- Mana per 5 second. Example: Restores 5 mana per 5 sec
+    local mp5 = equipEffect:match(GU_REGEX_EQUIP_EFFECT_MP5);
+    if (mp5) then
+        self:AddItemProperty(GU_PROPERTY_MP5, mp5);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_MP5");
+        return true;
+    end
+
+    -- Critical strike chance. Example: Improves your chance to get a critical strike by 1%.
+    local critStrikeChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_CRITICAL_STRIKE_CHANCE);
     if (critStrikeChance) then
-        self:AddItemProperty(GU_PROPERTY_STRIKE_CRITICAL_CHANCE, critStrikeChance);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_STRIKE_CRITICAL_CHANCE");
+        self:AddItemProperty(GU_PROPERTY_CRITICAL_STRIKE_CHANCE, critStrikeChance);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_CRITICAL_STRIKE_CHANCE");
         return true;
     end
 
+    -- Hit chance. Example: Improves your chance to hit by 1%.
+    local hitChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_HIT_CHANCE);
+    if (hitChance) then
+        self:AddItemProperty(GU_PROPERTY_HIT_CHANCE, hitChance);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_HIT_CHANCE");
+        return true;
+    end    
+    
     -- Attack power vs. enemy type. Example:  +30 Attack Power when fighting Undead | Attack Power increased by 18 when fighting Beasts
-    local apTypeValue, apType = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE);
+    local apTypeValue, apType = equipEffect:match(GU_REGEX_EQUIP_EFFECT_AP_TYPE);
     if (not apTypeValue or not apType) then
-        apTypeValue, apType = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE2);
+        apTypeValue, apType = equipEffect:match(GU_REGEX_EQUIP_EFFECT_AP_TYPE2);
     end
     if (apTypeValue and apType) then
         if (Misc:Contains(GU_PROPERTY_ENEMY_TYPES, apType)) then
             local property = apType .. " " .. GU_PROPERTY_ATTACK_POWER;
             self:AddItemProperty(property, apTypeValue);
-            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_AP_TYPE");
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_AP_TYPE");
             return true;
         else
             Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported enemy type found '%s' for: %s", apType, equipEffect);
@@ -990,55 +1126,87 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
     end
 
     -- Attack power. Example: +20 Attack Power
-    local ap = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_AP);
+    local ap = equipEffect:match(GU_REGEX_EQUIP_EFFECT_AP);
     if (ap) then
         self:AddItemProperty(GU_PROPERTY_ATTACK_POWER, ap);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_AP");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_AP");
         return true;
     end
 
     -- Ranged attack speed. Example: Increases ranged attack speed by 10%.
-    local rangedAttackSpeed = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_RANGED_ATTACK_SPEED);
+    local rangedAttackSpeed = equipEffect:match(GU_REGEX_EQUIP_EFFECT_RANGED_ATTACK_SPEED);
     if (rangedAttackSpeed) then
-        self:AddItemProperty(GU_PROPERTY_RANGE_ATTACK_SPEED, rangedAttackSpeed);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_RANGED_ATTACK_SPEED");
+        self:AddItemProperty(GU_PROPERTY_RANGED_ATTACK_SPEED, rangedAttackSpeed);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_RANGED_ATTACK_SPEED");
+        return true;
+    end
+
+    -- Ranged attack power. Example: +14 ranged Attack Power.
+    local rangedAttackPower = equipEffect:match(GU_REGEX_EQUIP_EFFECT_RANGED_ATTACK_POWER);
+    if (rangedAttackPower) then
+        self:AddItemProperty(GU_PROPERTY_RANGED_ATTACK_POWER, rangedAttackPower);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_RANGED_ATTACK_POWER");
         return true;
     end
 
     -- Defense. Example: Increased Defense +5
-    local defense = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_DEFENSE);
+    local defense = equipEffect:match(GU_REGEX_EQUIP_EFFECT_DEFENSE);
     if (defense) then
         self:AddItemProperty(GU_PROPERTY_DEFENSE, defense);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_DEFENSE");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_DEFENSE");
         return true;
     end
 
-    -- Defense. Example: Increases your chance to block attacks with a shield by 2%
-    local blockChance = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_BLOCK_CHANCE);
+    -- Block chance. Example: Increases your chance to block attacks with a shield by 2%
+    local blockChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_BLOCK_CHANCE);
     if (blockChance) then
         self:AddItemProperty(GU_PROPERTY_BLOCK_CHANCE, blockChance);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_BLOCK_CHANCE");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_BLOCK_CHANCE");
         return true;
     end
 
-    -- Defense. Example: Increases your chance to dodge an attack by 1%.
-    local dodgeChance = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_DODGE_CHANCE);
+    -- Block value. Example: Increases the block value of your shield by 27.
+    local blockValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_BLOCK_VALUE);
+    if (blockValue) then
+        self:AddItemProperty(GU_PROPERTY_BLOCK_VALUE, blockValue);
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_BLOCK_VALUE");
+        return true;
+    end
+
+    -- Dodge. Example: Increases your chance to dodge an attack by 1%.
+    local dodgeChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_DODGE_CHANCE);
     if (dodgeChance) then
         self:AddItemProperty(GU_PROPERTY_DODGE_CHANCE, dodgeChance);
-        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_DODGE_CHANCE");
+        Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_DODGE_CHANCE");
         return true;
+    end
+
+    -- Parry chance. Example: Increases/Decreases your chance to parry an attack by 1%.
+    local parry, parryChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_PARRY_CHANCE);
+    if (parry and parryChance) then
+        if (parry == "Increases" or parry == "Decreases") then
+            if (parry == "Decreases") then
+                parryChance = tonumber(parryChance) * -1;
+            end
+            self:AddItemProperty(GU_PROPERTY_PARRY_CHANCE, parryChance);
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_PARRY_CHANCE");
+            return true;
+        else
+            Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported parry type found '%s' for: %s", parry, equipEffect);
+            return false;
+        end
     end
 
     local weaponSkillResult = 1;
     local professionSkillResult = 1;
 
     -- Weapon skill. Example: Increased Two-handed Axes +2
-    local weaponSkill, weaponSkillValue = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_WEAPON_SKILL);
+    local weaponSkill, weaponSkillValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_WEAPON_SKILL);
     if (weaponSkill and weaponSkillValue) then
         weaponSkillResult = 2;
         if (Misc:Contains(GU_PROPERTY_WEAPON_SKILLS, weaponSkill)) then
             self:AddItemProperty(weaponSkill, tonumber(weaponSkillValue));
-            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_WEAPON_SKILL");
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_WEAPON_SKILL");
             return true;
         else
             weaponSkillResult = 3;
@@ -1046,12 +1214,12 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
     end
 
     -- Profession skill. Example: Increased Fishing +2
-    local professionSkill, professionSkillValue = equipEffect:match(GU_REGEX_EQUIP_EQUIP_EFFECT_PROFESSION_SKILL);
+    local professionSkill, professionSkillValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_PROFESSION_SKILL);
     if (professionSkill and professionSkillValue) then
         professionSkillResult = 2;
         if (Misc:Contains(GU_RECIPE_SUBTYPES, professionSkill)) then
             self:AddItemProperty(professionSkill, tonumber(professionSkillValue));
-            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EQUIP_EFFECT_PROFESSION_SKILL");
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_PROFESSION_SKILL");
             return true;
         else
             professionSkillResult = 3;
@@ -1068,6 +1236,19 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         end
     end
 
+    -- Profession skill #2. Example: Herbalism +5
+    professionSkill, professionSkillValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_PROFESSION_SKILL2);
+    if (professionSkill and professionSkillValue) then
+        if (Misc:Contains(GU_RECIPE_SUBTYPES, professionSkill)) then
+            self:AddItemProperty(professionSkill, tonumber(professionSkillValue));
+            Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_PROFESSION_SKILL2");
+            return true;
+        else
+            Logger:Err("Data:ProcessItemTooltipLineEquipEffect Unsupported profession skill type found '%s' for: %s", professionSkill, equipEffect);
+            return false;        
+        end
+    end
+
     local customEquipEffects = {
         "When struck in combat has a 1% chance of inflicting 50 Frost damage to the attacker and freezing them for 5 sec.",
         "When struck in combat has a 1% chance of inflicting 75 to 125 Shadow damage to the attacker.",
@@ -1075,22 +1256,82 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         "When struck in combat has a 1% chance of dealing 75 to 125 Fire damage to all targets around you.",
         "When struck in combat has a 1% chance of raising a thorny shield that inflicts 3 Nature damage to attackers when hit and increases Nature resistance by 50 for 30 sec.",
         "When struck in combat has a 3% chance to encase the caster in bone, increasing armor by 150 for 20 sec.",
+        "When struck by a melee attacker, that attacker has a 5% chance of being put to sleep for 10 sec.  Only affects enemies level 50 and below.",
+        "When struck in combat has a 1% chance of inflicting 105 to 175 Shadow damage to the attacker.",
+        "When struck in combat has a 3% chance to heal you for 60 to 100.",
+        "When struck in combat has a 5% chance of inflicting 35 to 65 Nature damage to the attacker.",
+        "When struck in combat inflicts 3 Arcane damage to the attacker.",      -- TODO Property?
+        "When struck in combat has a 1% chance of reducing all melee damage taken by 25 for 10 sec.",
+        "When struck has a 3% chance of stealing 120 life from the attacker over 4 sec.",
+        "When struck in combat has a 5% chance to make you invulnerable to melee damage for 3 sec. This effect can only occur once every 30 sec.",
+        "When struck in combat has a 1% chance of increasing all party member's armor by 250 for 30 sec.",
+        "When shapeshifting into Cat form the Druid gains 20 energy, when shapeshifting into Bear form the Druid gains 5 rage.",
         "Enchants the main hand weapon with fire, granting each attack a chance to deal 25 to 35 additional fire damage.",
         "Have a 2% chance when struck in combat of increasing armor by 350 for 15 sec.",
+        "Has a 2% chance when struck in combat of protecting you with a holy shield.",
+        "Has a 1% chance when struck in combat of increasing chance to block by 50% for 10 sec.",
         "Chance to strike your ranged target with a Flaming Cannonball for 33 to 49 Fire damage.",
         "Chance to strike your target with a Frost Arrow for 31 to 45 Frost damage.",
         "Chance to strike your ranged target with a Searing Arrow for 18 to 26 Fire damage.",
         "Chance to strike your ranged target with a Venom Shot for 31 to 45 Nature damage.",
+        "Chance to strike your ranged target with a Fire Blast for 12 to 18 Fire damage.",
+        "Chance to strike your ranged target with a Quill Shot for 66 to 98 Nature damage.",
+        "Chance to strike your ranged target with a Shadowbolt for 13 to 19 Shadow damage.",
+        "Chance to strike your ranged target with a Flaming Shell for 18 to 26 Fire damage.",
+        "Chance to strike your ranged target with Shadow Shot for 18 to 26 Shadow damage.",
         "Deals 5 Fire damage to anyone who strikes you with a melee attack.",
+        "Deals 60 to 90 damage when you are the victim of a critical melee strike.",
+        "Deals damage and drains 100 to 500 mana every second if you are not worthy.",
+        "Deals 5 to 35 damage every time you block.",
         "Increases your lockpicking skill slightly.",
         "Nearby elven gems appear on the minimap.",
-        "Increase the Spirit of nearby party members by 4."
+        "Nearby Gahz'ridian appears on the minimap.",
+        "Increase the Spirit of nearby party members by 4.",
+        "Increases swim speed by 15%.",
+        "Increases your effective stealth level by 1.",     -- TODO Make this a property
+        "Increases your stealth detection.",    -- TODO Make this a property,
+        "Increases Defense by 3, Shadow resistance by 10 and your normal health regeneration by 3.",    -- TODO Properties?
+        "Increases mount speed by 3%.",     -- TODO Make this a property,
+        "Increases movement speed and life regeneration rate.",
+        "Increases your resistance to silence effects by 7%.",
+        "Increases the damage absorbed by your Mana Shield by 285.",    -- TODO Spell/Abilities properties?
+        "Increases the duration of your Sprint ability by 3 sec.",  -- TODO ^
+        "Increases the Holy damage bonus of your Judgement of the Crusader by 20.", -- TODO ^
+        "Increases the damage done by your Multi-Shot by 4%.",  -- TODO ^
+        "Increases the speed of your Ghost Wolf ability by 15%.",   -- TODO ^
+        "Slightly increases your stealth detection.",
+        "Improves your chance to get a critical strike with missile weapons by 1%.",    -- TODO Make this a property.
+        "5% chance of dealing 15 to 25 Fire damage on a successful melee attack.",
+        "2% chance on melee hit to gain 1 extra attack.",
+        "Allows underwater breathing.",
+        "Impress others with your fashion sense.",
+        "Adds 4 fire damage to your weapon attack.",
+        "Adds 3 Lightning damage to your melee attacks.",
+        "Immune to Disarm.",    -- TODO Property?
+        "Grants a chance on striking the enemy for 50 to 70 Fire damage.",
+        "Reduces the cooldown of your Fade ability by 2 sec.",   -- TODO Property for spell cooldown reduction?
+        "Reduces the mana cost of your Arcane Shot by 15.",     -- TODO Property for spell cost reduction?
+        "Hamstring Rage cost reduced by 3.",        -- TODO ^
+        "Protects the wearer from being fully engulfed by Shadow Flame.",
+        "Restores 150 mana or 20 rage when you kill a target that gives experience; this effect cannot occur more than once every 10 seconds.",
     }
 
     for k,v in pairs(customEquipEffects) do
         if (equipEffect == v) then
             table.insert(self.tempParsedItem.equipEffects, equipEffect);
             Logger:Verb("-- Tooltip line '%s' matched against custom equip effect.", equipEffect);
+            return true;
+        end
+    end
+    
+    local stoneEffects = {
+        "Enchants the main hand weapon with fire, granting each attack a chance to deal (%d+) to (%d+) additional fire damage"
+    }
+
+    for k,v in pairs(stoneEffects) do
+        if (equipEffect:match(v)) then
+            table.insert(self.tempParsedItem.equipEffects, equipEffect);
+            Logger:Verb("-- Tooltip line '%s' matched against custom stone effect.", equipEffect);
             return true;
         end
     end

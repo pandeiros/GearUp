@@ -24,7 +24,8 @@ local deprecatedIDs = {
     18951, 13843, 23072, 23162, 22230, 7948, 3542, 3538, 7951, 19971, 20502, 7949, 23058, 17108, 7953, 9443, 18303, 15141,
     15780, 18342, 18341, 3533, 3528, 16785, 17769, 17142, 13847, 13848, 13846, 13849, 6724, 6728, 6711, 6707, 6708, 6698,
     17783, 17782, 18582, 19989, 7187, 18584, 18583, 3527, 3547, 21613, 21614, 21612, 21587, 21588, 3541, 3537, 3522, 3526,
-    3529, 2554, 18023, 7952, 21594, 18320, 20003, 13844, 13842, 13845, 18355, 18304, 22273, 18316, 19986, 20524, 19186
+    3529, 2554, 18023, 7952, 21594, 18320, 20003, 13844, 13842, 13845, 18355, 18304, 22273, 18316, 19986, 20524, 19186, 7869,
+    12585
 }
 
 function Data:GetMaxItemCount()
@@ -132,12 +133,13 @@ function Data:MarkItemIDAsDeprecated(itemID, itemName)
         return;
     end
 
+    itemName = itemName or "UNKNOWN";
+
     scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] = GU_ITEM_STATUS_DEPRECATED;
     scanDB.items[Locales:GetDatabaseLocaleKey()][itemID] = nil;
     scanDB.tooltips[Locales:GetDatabaseLocaleKey()][itemID] = nil;
     scanDB.deprecated[itemID] = itemName;
 
-    itemName = itemName or "UNKNOWN";
     Logger:Verb("Marking %s (ID: %d) as deprecated. Removed associated data.", itemName, itemID);
 end
 
