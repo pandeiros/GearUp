@@ -128,7 +128,7 @@ function GU:ResetAllData(info)
 
     Data:Cleanup();
 
-    self.db:ResetDB(DEFAULT_DB_NAME);
+    self.db:ResetDB(GU_DB_NAME);
 
     GUDB = nil;
     GUCharacterDB = nil;

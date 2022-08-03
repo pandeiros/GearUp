@@ -193,7 +193,7 @@ function Colors:GetColorTestString()
     local test = "";
     for key, value in pairs(COLOR_SHADES) do
         for key2, value2 in pairs(value) do
-            test = test .. self:GetColorStr(value2, "\#");
+            test = test .. self:GetColorStr(value2, "#");
         end
         test = test .. "\n";
     end

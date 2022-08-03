@@ -371,6 +371,7 @@ L["PROPERTY_ENEMY_TYPE_UNDEAD"] = "Undead";
 L["PROPERTY_ENEMY_TYPE_DRAGONS"] = "Dragons";
 L["PROPERTY_ENEMY_TYPE_BEASTS"] = "Beasts";
 L["PROPERTY_ENEMY_TYPE_DEMONS"] = "Demons";
+L["PROPERTY_ENEMY_TYPE_ELEMENTALS"] = "Elementals";
 
 L["PROPERTY_WEAPON_SKILL_AXES"] = "Axes";
 L["PROPERTY_WEAPON_SKILL_BOWS"] = "Bows";
@@ -386,6 +387,8 @@ L["PROPERTY_WEAPON_SKILL_THROWN"] = "Thrown";
 L["PROPERTY_WEAPON_SKILL_AXES_2H"] = "Two-handed Axes";
 L["PROPERTY_WEAPON_SKILL_MACES_2H"] = "Two-handed Maces";
 L["PROPERTY_WEAPON_SKILL_SWORDS_2H"] = "Two-handed Swords";
+
+L["PROPERTY_BG_AV"] = "Alterac Valley";
 
 ----------------------------------------------------------
 -- Regex
@@ -422,6 +425,7 @@ L["REGEX_EQUIP_SLOT_AND_TYPE"] = "([%a%-]+)%s?([%a%-]*)%s?([%a%-]*)%s?([%a%-]*)"
 L["REGEX_EQUIP_EFFECT"] = "Equip: (.+)";
 L["REGEX_EQUIP_EFFECT_SPELL_POWER"] = "Increases damage and healing done by magical spells and effects by up to (%d+)";
 L["REGEX_EQUIP_EFFECT_SPELL_DAMAGE_TYPE"] = "Increases damage done by (%a+) spells and effects by up to (%d+)";
+L["REGEX_EQUIP_EFFECT_SPELL_DAMAGE_ENEMY_TYPE"] = "Increases damage done to (%a+) by magical spells and effects by up to (%d+)";
 L["REGEX_EQUIP_EFFECT_SPELL_HEALING"] = "Increases healing done by spells and effects by up to (%d+)";
 L["REGEX_EQUIP_EFFECT_SPELL_CRITICAL_STRIKE_CHANCE"] = "Improves your chance to get a critical strike with spells by (%d+)%%";
 L["REGEX_EQUIP_EFFECT_SPELL_HIT_CHANCE"] = "Improves your chance to hit with spells by (%d+)%%";
@@ -486,6 +490,5 @@ L["REGEX_PROJECTILE_DPS"] = "Adds (%d+%.?%d-) damage per second";
 -- Misc
 L["REGEX_MOUNT_RIDING"] = "Requires (%a+%s%a+) %(%d+%)";
 L["REGEX_DURATION"] = "Duration: (.+)";
-
 
 end

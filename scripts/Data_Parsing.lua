@@ -684,6 +684,26 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
         end
     end
 
+    -- Battlegrounds
+    for k,v in pairs(GU_PROPERTY_BATTLEGROUNDS) do
+        if (tooltipLine == v) then
+            self:AddItemProperty(GU_PROPERTY_BATTLEGROUND, v);
+            Logger:Verb("-- Tooltip line '%s' matched against battleground name.", tooltipLine);
+            return true;
+        end
+    end
+
+    -- Custom lines we can easily skip.
+    local skippableLines = {
+        "Dire Maul"
+    }
+    for k,v in pairs(skippableLines) do
+        if (tooltipLine == v) then
+            Logger:Verb("-- Tooltip line '%s' matched against skippable line.", tooltipLine);
+            return true;
+        end
+    end
+
     -- Now we divide parsing into separate functions to make it more readable and easier to debug.
     local result = false;
     
@@ -1042,6 +1062,10 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
             return false;
         end
     end
+
+    -- Spell damage for enemy type. Example: Increases damage done to Undead by magical spells and effects by up to 35.
+    local spellDamageEnemyType, spellDamageEnemyTypeValue = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_DAMAGE_ENEMY_TYPE);
+    
     
     -- Spell critical strike chance. Example: Improves your chance to get a critical strike with spells by 1%.
     local spellCritChance = equipEffect:match(GU_REGEX_EQUIP_EFFECT_SPELL_CRITICAL_STRIKE_CHANCE);
@@ -1115,7 +1139,7 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
     end
     if (apTypeValue and apType) then
         if (Misc:Contains(GU_PROPERTY_ENEMY_TYPES, apType)) then
-            local property = apType .. " " .. GU_PROPERTY_ATTACK_POWER;
+            local property = GU_PROPERTY_ATTACK_POWER .. " versus " .. apType;
             self:AddItemProperty(property, apTypeValue);
             Logger:Verb("-- Tooltip line '%s' matched against regex %s", equipEffect, "GU_REGEX_EQUIP_EFFECT_AP_TYPE");
             return true;
@@ -1266,10 +1290,12 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         "When struck in combat has a 5% chance to make you invulnerable to melee damage for 3 sec. This effect can only occur once every 30 sec.",
         "When struck in combat has a 1% chance of increasing all party member's armor by 250 for 30 sec.",
         "When shapeshifting into Cat form the Druid gains 20 energy, when shapeshifting into Bear form the Druid gains 5 rage.",
+        "When the shield blocks it releases an electrical charge that damages all nearby enemies.   This also has a chance of damaging the shield.",
         "Enchants the main hand weapon with fire, granting each attack a chance to deal 25 to 35 additional fire damage.",
         "Have a 2% chance when struck in combat of increasing armor by 350 for 15 sec.",
         "Has a 2% chance when struck in combat of protecting you with a holy shield.",
         "Has a 1% chance when struck in combat of increasing chance to block by 50% for 10 sec.",
+        "Has a 2% chance when struck in combat of increasing all stats by 25 for 1 min.",
         "Chance to strike your ranged target with a Flaming Cannonball for 33 to 49 Fire damage.",
         "Chance to strike your target with a Frost Arrow for 31 to 45 Frost damage.",
         "Chance to strike your ranged target with a Searing Arrow for 18 to 26 Fire damage.",
@@ -1279,6 +1305,8 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         "Chance to strike your ranged target with a Shadowbolt for 13 to 19 Shadow damage.",
         "Chance to strike your ranged target with a Flaming Shell for 18 to 26 Fire damage.",
         "Chance to strike your ranged target with Shadow Shot for 18 to 26 Shadow damage.",
+        "Chance to strike your ranged target with Keeper's Sting for 15 to 21 Nature damage.",
+        "Chance on landing a damaging spell to deal 100 Shadow damage and restore 100 mana to you.",
         "Deals 5 Fire damage to anyone who strikes you with a melee attack.",
         "Deals 60 to 90 damage when you are the victim of a critical melee strike.",
         "Deals damage and drains 100 to 500 mana every second if you are not worthy.",
@@ -1294,6 +1322,8 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         "Increases mount speed by 3%.",     -- TODO Make this a property,
         "Increases movement speed and life regeneration rate.",
         "Increases your resistance to silence effects by 7%.",
+        "Increases your resistance to silence by 5%.",  -- TODO Property? 
+        "Increases your chance to resist Stun and Fear effects by 1%.",
         "Increases the damage absorbed by your Mana Shield by 285.",    -- TODO Spell/Abilities properties?
         "Increases the duration of your Sprint ability by 3 sec.",  -- TODO ^
         "Increases the Holy damage bonus of your Judgement of the Crusader by 20.", -- TODO ^
@@ -1307,11 +1337,14 @@ function Data:ProcessItemTooltipLineEquipEffect(itemID, itemSubtype, equipEffect
         "Impress others with your fashion sense.",
         "Adds 4 fire damage to your weapon attack.",
         "Adds 3 Lightning damage to your melee attacks.",
+        "Adds 2 fire damage to your melee attacks.",
         "Immune to Disarm.",    -- TODO Property?
         "Grants a chance on striking the enemy for 50 to 70 Fire damage.",
         "Reduces the cooldown of your Fade ability by 2 sec.",   -- TODO Property for spell cooldown reduction?
         "Reduces the mana cost of your Arcane Shot by 15.",     -- TODO Property for spell cost reduction?
         "Hamstring Rage cost reduced by 3.",        -- TODO ^
+        "Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.",    -- TODO ^ ?
+        "Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.",
         "Protects the wearer from being fully engulfed by Shadow Flame.",
         "Restores 150 mana or 20 rage when you kill a target that gives experience; this effect cannot occur more than once every 10 seconds.",
     }

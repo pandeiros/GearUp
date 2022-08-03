@@ -10,18 +10,18 @@ local Colors = Style.Colors;
 ----------------------------------------------------------
 
 local CLASSES_ID = {
-	[0]		= CLASS_DEATHKNIGHT,
-	[1]		= CLASS_DEMONHUNTER,
-	[2]		= CLASS_DRUID,
-	[3]		= CLASS_HUNTER,
-	[4]		= CLASS_MAGE,
-	[5]		= CLASS_MONK,
-	[6]		= CLASS_PALADIN,
-	[7]		= CLASS_PRIEST,
-	[8]		= CLASS_ROGUE,
-	[9]		= CLASS_SHAMAN,
-	[10]	= CLASS_WARLOCK,
-	[11]	= CLASS_WARRIOR,
+	[0]		= GU_CLASS_DEATHKNIGHT,
+	[1]		= GU_CLASS_DEMONHUNTER,
+	[2]		= GU_CLASS_DRUID,
+	[3]		= GU_CLASS_HUNTER,
+	[4]		= GU_CLASS_MAGE,
+	[5]		= GU_CLASS_MONK,
+	[6]		= GU_CLASS_PALADIN,
+	[7]		= GU_CLASS_PRIEST,
+	[8]		= GU_CLASS_ROGUE,
+	[9]		= GU_CLASS_SHAMAN,
+	[10]	= GU_CLASS_WARLOCK,
+	[11]	= GU_CLASS_WARRIOR,
 }
 
 function Misc:GetClassNameByID(classID)
@@ -255,12 +255,12 @@ end
 function Misc:CreateObject(objectOrName, ...)
     local object,name
 	local i=1
-	if type(objectorname)=="table" then
-		object=objectorname
+	if type(objectOrName)=="table" then
+		object=objectOrName
 		name=...
 		i=2
 	else
-		name=objectorname
+		name=objectOrName
 	end
 
     object = object or {}
@@ -295,7 +295,7 @@ function Misc:PrintAllProperties(t, prevData)
 	end
   
 	-- include the data from index into data, recursively, and return
-	return PrintAllProperties(index, data)
+	return self:PrintAllProperties(index, data)
 end
 
 function Misc:PrintAllData(object, prevData, keys, depth)

@@ -115,18 +115,3 @@ function Data:FixDeprecatedNames()
 
     Logger:Log("Fixing deprecated names finished. Fixed %d items, remaining: %d.", count, remaining);
 end
-
-function Data:AddAllDeprecatedIDs()
-    local scanDB = GU.db.global.scanDB;
-    local statusDB = scanDB.status[Locales:GetDatabaseLocaleKey()];
-
-    for k,v in pairs(deprecatedIDs) do
-        if (statusDB[v] ~= GU_ITEM_STATUS_DEPRECATED) then
-            itemName, _, _, _, _, _, _, 
-            _, _, _, _ = GetItemInfo(k);
-            itemName = itemName or nil;
-
-            self:MarkItemIDAsDeprecated(v, itemName);
-        end
-    end
-end
