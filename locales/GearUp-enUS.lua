@@ -398,7 +398,7 @@ L["PROPERTY_BG_AV"] = "Alterac Valley";
 -- NOTE: WoW Lua api does not support %g in patterns.
 
 -- Common
-L["REGEX_UNIQUE_EQUIPPED"] = GL["PROPERTY_UNIQUE_EQUIPPED"] .. ":?(.*)";
+L["REGEX_UNIQUE_EQUIPPED"] = "Unique%-Equipped";
 L["REGEX_UNIQUE"] = GL["PROPERTY_UNIQUE"] .. "%s?%(?(%d*)%)?";
 
 L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";

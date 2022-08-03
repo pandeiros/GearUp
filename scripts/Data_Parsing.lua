@@ -91,8 +91,8 @@ end
 
 function Data:GetItemIDToParse()
     local scanDB = GU.db.global.scanDB;
-    local currentID = (self.lastIDParsed + 1) % self:GetMaxItemID();
-
+    local currentID = self:GetNextItemIDToScan(self.lastIDParsed);
+    
     if (currentID < 0) then
         currentID = 1;
     end
@@ -104,7 +104,7 @@ function Data:GetItemIDToParse()
             end
         end
 
-        currentID = (currentID + 1) % self:GetMaxItemID();
+        currentID = self:GetNextItemIDToScan(currentID);
     end
 
     return nil;
@@ -156,7 +156,7 @@ function Data:ParseItem(itemID)
     if (result) then
         if (not isEmpty) then
             -- self:PrintItemInfo(self.tempParsedItem, itemID);
-            -- Logger:Log("Data:ParseItem Parsed item: %s (%d)", self.tempParsedItem.name, itemID);
+            Logger:Log("Data:ParseItem Parsed item: %s (%d)", self.tempParsedItem.name, itemID);
             -- self:SetParseEnabled(false); -- temporary
             -- Add item to database here.
             -- Add set to database here.
@@ -237,7 +237,7 @@ function Data:ParseItemTooltipLine(itemID, tooltipLine, remainingLines)
     -- TODO Convert all number parameters using "tonumber".
     -- TODO Verify recipes items once database is exported.
     --------------------------------------------------------------
-
+    
     -- Need to check cause recipes can have Bind when X properties.
     if (itemType ~= L["TYPE_RECIPE"] or not self.tempParsedProfessionRequirement) then
         -- Check binding and uniqueness.

@@ -32,7 +32,7 @@
 # ## Notes-zhCN: Item search engine and gear ranking addon.
 # ## Notes-zhTW: Item search engine and gear ranking addon.
 
-## X-Min-Interface: 11306
+## X-Min-Interface: 20504
 ## X-Credits:
 ## X-Category: Bags & Inventory
 ## X-License: GPL v3

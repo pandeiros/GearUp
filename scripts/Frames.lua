@@ -109,7 +109,7 @@ function Frames:Initialize()
 
     self.count = 0;
     self.taskSpeed = 1.0;
-    self.maxTasks = 100;
+    self.maxTasks = 100;    -- 100
 end
 
 Frames:Initialize();

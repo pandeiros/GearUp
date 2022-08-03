@@ -96,7 +96,7 @@ local OptionsTable = {
             guiHidden = true,
             type = "execute",
             name = "Fix Scan",
-            desc = "Fix scanned database. Available options: validate|deprecated|tooltips|depnames",
+            desc = "Fix scanned database. Available options: validate | deprecated | tooltips | depnames | ranges",
             func = "FixScan",
         }
     },
@@ -232,6 +232,8 @@ function GU:FixScan(info)
             Data:RevalidateDeprecatedItems();
         elseif (param == "depnames") then
             Data:FixDeprecatedNames();
+        elseif (param == "ranges") then
+            Data:RemoveOutOfRangeEntries();
         else
             Logger:Err("FixScan Invalid option given: %s", param);
         end

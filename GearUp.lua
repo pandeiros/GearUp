@@ -3,7 +3,7 @@
 -- ********************************************************
 -- *                                                      *
 -- *  This addon is written and copyrighted by:           *
--- *    - Pandeiros (Pandeirosa @ EU-ZandalarTribe)       *
+-- *    - Pandeiros (Pandeirosa @ EU-Earthshaker)       *
 -- *                                                      *
 -- ********************************************************
 

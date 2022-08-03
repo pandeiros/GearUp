@@ -115,3 +115,49 @@ function Data:FixDeprecatedNames()
 
     Logger:Log("Fixing deprecated names finished. Fixed %d items, remaining: %d.", count, remaining);
 end
+
+-- Clears all entries from database that are outside of scanning range.
+function Data:RemoveOutOfRangeEntries()
+    local scanDB = GU.db.global.scanDB;
+    local statusDB = scanDB.status[Locales:GetDatabaseLocaleKey()];
+    local scanItemsDB = scanDB.items[Locales:GetDatabaseLocaleKey()];
+    local tooltipsDB = scanDB.tooltips[Locales:GetDatabaseLocaleKey()];
+    local deprecatedDB = scanDB.deprecated;
+
+    Logger:Log("Removing entries out of scanning range...");
+    
+    self:RemoveOutOfRangeEntries_Internal(scanItemsDB, "scanItemsDB");
+    self:RemoveOutOfRangeEntries_Internal(statusDB, "statusDB");
+    self:RemoveOutOfRangeEntries_Internal(tooltipsDB, "tooltipsDB");
+    self:RemoveOutOfRangeEntries_Internal(deprecatedDB, "deprecatedDB");
+
+    Logger:Log("Removing entries finished.");    
+end
+
+function Data:RemoveOutOfRangeEntries_Internal(database, contextStr)
+    if (database == nil) then
+        return;
+    end
+
+    local scanDB = GU.db.global.scanDB;
+
+    local statusDB = scanDB.status[Locales:GetDatabaseLocaleKey()];
+    local scanItemsDB = scanDB.items[Locales:GetDatabaseLocaleKey()];
+    local tooltipsDB = scanDB.tooltips[Locales:GetDatabaseLocaleKey()];
+    local deprecatedDB = scanDB.deprecated;
+
+    local count = 0;
+
+    for k,v in pairs(database) do
+        if (self:GetNextItemIDToScan(k - 1) ~= k) then
+            scanItemsDB[k] = nil;
+            statusDB[k] = nil;
+            tooltipsDB[k] = nil;
+            deprecatedDB[k] = nil;
+
+            count = count + 1;
+        end
+    end
+
+    Logger:Log("Removed %d out of range entries from %s.", count, contextStr);   
+end
