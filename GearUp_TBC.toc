@@ -1,6 +1,6 @@
-## Interface: 11306
+## Interface: 20504
 ## Author: Pandeiros
-## Version: 1.0
+## Version: 0.3
 ## SavedVariables: GUMinimapIcon, GUDB
 ## SavedVariablesPerCharacter: GUCharacterDB
 ## Dependencies:
@@ -8,8 +8,8 @@
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 
-## Title: Gear Up!
-## Notes: Item search engine and gear ranking addon.
+## Title: Gear Up! |cff77A73C[TBC]|r
+## Notes: Item database and search engine for WoW |cff77A73CBurning Crusade|r Classic.
 
 # ## Title-deDE: Gear Up!
 # ## Title-esES: Gear Up!
@@ -45,27 +45,36 @@ embeds.xml
 Init.lua
 Config.lua
 
-locales/GearUp-enUS.lua
-locales/GearUp-esES.lua
-locales/Locales.lua
-locales/GlobalStrings.lua
+scripts\Dev.lua
 
-data/Phases.lua
-data/Items.lua
+locales\GearUp-enUS.lua
+locales\tbc\GearUp-enUS_tbc.lua
+locales\GearUp-esES.lua
 
-scripts/Styles.lua
-scripts/Logging.lua
-scripts/Misc.lua
-scripts/Async.lua
+locales\Locales.lua
+locales\GlobalStrings.lua
 
-scripts/Data.lua
-scripts/Data_Scanning.lua
-scripts/Data_Parsing.lua
-scripts/Data_Fixing.lua
+data\Phases.lua
+data\Items.lua
 
-scripts/Functions.lua
-scripts/Frames.lua
-scripts/Options.lua
-scripts/Events.lua
+data\tbc\Phases_tbc.lua
+
+scripts\Styles.lua
+scripts\Logging.lua
+scripts\Misc.lua
+# scripts\Async.lua
+
+scripts\data\Data.lua
+scripts\data\Data_ID.lua
+scripts\data\Data_Scanning.lua
+scripts\data\Data_Parsing.lua
+scripts\data\Data_Fixing.lua
+
+scripts\data\tbc\Data_ID_tbc.lua
+
+scripts\Functions.lua
+scripts\Frames.lua
+scripts\Options.lua
+scripts\Events.lua
 
 GearUp.lua

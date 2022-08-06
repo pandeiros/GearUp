@@ -152,25 +152,6 @@ function Misc:Clamp(value, min, max)
 	return value;
 end
 
--- Converts a decimal number to hexadecimal number.
-function Misc:DECToHEX(decNumber)
-	local hexNumber = "0x";
-	local hex = "";
-    while (decNumber > 0) do
-        local index = math.fmod(decNumber, 16) + 1;
-        decNumber = math.floor(decNumber / 16);
-        hex = string.sub('0123456789ABCDEF', index, index) .. hex;			
-    end
-
-    if (string.len(hex) == 0) then
-        hex = "0";
-	end
-	
-	hexNumber = hexNumber .. hex;
-
-    return hexNumber;
-end
-
 function Misc:Inc(value)
 	value = value + 1;
 	return value;

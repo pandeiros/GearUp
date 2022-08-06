@@ -5,7 +5,7 @@ local Style = GU.Style;
 local Colors = Style.Colors;
 local Data = GU.Data;
 local Logger = GU.Logger;
-local Async = GU.Async;
+-- local Async = GU.Async;
 local Misc = GU.Misc;
 
 local Frames = {};
@@ -27,12 +27,6 @@ function GU_MainFrame:GetName()
 end
 
 function GU_MainFrame:Draw()
-    self.timeSinceOpened = 0;
-    self.timeSinceLastUpdate = 0;
-    self.updateInterval = 0.1;
-    -- self.updateInterval = 0.0167;
-    self.count = 0;
-
     self:SetTitle(GU_ADDON_NAME);
     self:SetStatusText("");
     self:SetCallback("OnClose", function(widget) GU_AceGUI:Release(widget) end);
@@ -109,6 +103,8 @@ function Frames:Initialize()
 
     self.count = 0;
     self.taskSpeed = 1.0;
+    self.dynamicTaskSpeed = 1.0;
+    self.autoTaskSpeedScalingEnabled = true;
     self.maxTasks = 100;    -- 100
 end
 
@@ -123,6 +119,7 @@ function Frames:OnUpdate(timeElapsed)
         -- Logger:Verb(self.count);
         self.count = 0;
     end
+
     self.timeSinceOpened = self.timeSinceOpened + timeElapsed;
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + timeElapsed;
     
@@ -135,24 +132,33 @@ function Frames:OnUpdate(timeElapsed)
     end
 
     -- Dynamic task speed adjusting.
-    if (timeElapsed > 0) then
-        if (timeElapsed / self.updateInterval > 1.25 and self.taskSpeed > 0.0) then
-            self.taskSpeed = math.max(0.0, self.taskSpeed - 0.05);
-            -- Logger:Verb("Frames:OnUpdate Decreasing task speed to %1.2f", self.taskSpeed);
-        elseif (timeElapsed / self.updateInterval < 0.75 and self.taskSpeed < 1.0) then
-            self.taskSpeed = math.min(1.0, self.taskSpeed + 0.05);
-            -- Logger:Verb("Frames:OnUpdate Increasing task speed to %1.2f", self.taskSpeed);
+    if (self.autoTaskSpeedScalingEnabled) then
+        if (timeElapsed > 0) then
+            if (timeElapsed / self.updateInterval > 1.5 and self.taskSpeed > 0.05) then
+                self.taskSpeed = math.max(0.05, self.taskSpeed - 0.05);
+                Logger:DebugChat("Debug", true, "Frames:OnUpdate Decreasing task speed to %1.2f", self.taskSpeed);
+            elseif (timeElapsed / self.updateInterval < 1.1 and self.taskSpeed < 1.0) then
+                self.taskSpeed = math.min(1.0, self.taskSpeed + 0.05);
+                Logger:DebugChat("Debug", true, "Frames:OnUpdate Increasing task speed to %1.2f", self.taskSpeed);
+            end
+        else
+            self.taskSpeed = 0.0;
         end
-    else
-        self.taskSpeed = 0.0;
-    end   
+    elseif (self.taskSpeed ~= 1.0) then
+        self.taskSpeed = 1.0;   
+    end
 
     -- Task scheduling
-    local taskCount = math.max(1, math.floor(self.maxTasks * self.taskSpeed));
+    local taskCount = math.max(1, math.floor(self.maxTasks * self.taskSpeed * self.dynamicTaskSpeed));
 
     if (Data:HasTasks()) then
         Data:DoTasks(taskCount);
     end
+end
+
+function Frames:SetDynamicTaskSpeed(speed)
+    Logger:Log("SetDynamicTaskSpeed New dynamic task speed: %f", speed);
+    self.dynamicTaskSpeed = speed;
 end
 
 function Frames:OpenMainFrame()

@@ -28,17 +28,13 @@ function Data:Initialize()
         self:ResetScanningDatabase();
     end
 
-    if (not GU.db.global.itemDB) then
-        self:ResetItemDatabase();
+    if (not GU.db.global.parseDB) then
+        self:ResetParsingDatabase();
     end
+
+    GU.db.global.itemDB = {}; 
 
     local scanDB = GU.db.global.scanDB;
-    for k, v in pairs(scanDB.status[Locales:GetDatabaseLocaleKey()]) do
-        if (k >= self:GetMaxItemID()) then
-            scanDB.status[Locales:GetDatabaseLocaleKey()][k] = nil;
-        end
-    end
-
     for k, v in pairs(scanDB.items[Locales:GetDatabaseLocaleKey()]) do
         v.equipBonuses = nil;
         v.useBonuses = nil;
@@ -56,19 +52,29 @@ function Data:InitProperties()
 
     scanDB.scanEnabled = scanDB.scanEnabled or false;
     scanDB.parseEnabled = scanDB.parseEnabled or false;
+
+    -- TODO Flavor check
+    -- Rather than base scan version on addon version use some mix of addon + flavor version.
+    -- Because of the fact that the same addon is used to scan and parse data for all flavors,
+    -- once the saved scan version doesn't match the current flavor and patch, prevent scanning
+    -- and parsing before scanning database is reset.
     scanDB.scanVersion = scanDB.scanVersion or GU_ADDON_VERSION;
 
-    self.lastIDScanned = 0;
-    self.lastIDForTooltip = 0;
-    self.lastIDParsed = 0;
+    self.lastIndexScanned = 1;
+    self.lastTooltipIndex = 1;
+    self.scanningCount = 0;
     self.prioScanIDList = {};
     self.prioTooltipIDList = {};
+
+    self.lastIDParsed = 0;
+
+    self.fixingItems = false;
 end
 
 function Data:HasTasks()
     local scanDB = GU.db.global.scanDB
 
-    if (scanDB.scanEnabled or scanDB.parseEnabled) then
+    if (scanDB.scanEnabled or scanDB.parseEnabled or self.fixingItems) then
         return true;
     end
 
@@ -79,6 +85,7 @@ function Data:DoTasks(taskCount)
     for _ = 1,taskCount do
         self:ScanItems();
         self:ParseItems();
+        self:FixItems();
     end
 end
 
@@ -88,17 +95,17 @@ function Data:Cleanup()
 end
 
 function Data:ResetDatabase()
-    self:ResetItemDatabase();
     self:ResetScanningDatabase();
+    self:ResetParsingDatabase();
 end
 
-function Data:ResetItemDatabase()
-    GU.db.global.itemDB = {};       -- Contains processed, final info about items.
+function Data:ResetParsingDatabase()
+    GU.db.global.parseDB = {};       -- Contains processed, final info about items.
 
-    local itemDB = GU.db.global.itemDB;
+    local parseDB = GU.db.global.parseDB;
 
     -- Create structures for supported locales.
-    -- self:CreateLocalizedItemStructures("esES");
+    -- self:CreateLocalizedParsingStructures("esES");
 end
 
 function Data:ResetScanningDatabase()
@@ -174,13 +181,13 @@ function Data:ResetScanningDatabase()
     -- self:CreateLocalizedScanningStructures("esES");
 end
 
-function Data:CreateLocalizedItemStructures(locale)
-    local itemDB = GU.db.global.itemDB;
+function Data:CreateLocalizedParsingStructures(locale)
+    local parseDB = GU.db.global.parseDB;
 
     if (Locales:IsSupportingLocale(locale)) then
         -- TODO
     else 
-        Logger:Err("Data:CreateLocalizedItemStructures Locale %s is not supported.", locale);
+        Logger:Err("Data:CreateLocalizedParsingStructures Locale %s is not supported.", locale);
     end
 end
 
@@ -230,7 +237,8 @@ function Data:GetItemStatusAsString(status)
 end
 
 ----------------------------------------------------------
--- Debug purposes only.
+-- Debug
+----------------------------------------------------------
 
 function Data:PrintAllItemLinks()
     local scanDB = GU.db.global.scanDB;

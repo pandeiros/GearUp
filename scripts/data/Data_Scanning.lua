@@ -7,60 +7,13 @@ local Logger = GU.Logger;
 local Misc = GU.Misc;
 local Style = GU.Style;
 local Colors = GU.Style.Colors;
-local Async = GU.Async;
+-- local Async = GU.Async;
 local Locales = GU.Locales;
 local Frames = GU.Frames;
 
 local L = GU_AceLocale:GetLocale("GU");
 
--- Data taken from classic.wowhead.com
-local MAX_ITEM_ID = 194101;                 -- 24284        These values are from Wowhead TBC Database
-local MAX_ITEM_COUNT = 25731;               -- allegedly...
-local MAX_ITEM_DEPRECATED_COUNT = 904;      -- allegedly...
-local SCANNING_ITEM_RANGES = {
-    {0, 40000},
-    {43516, 43516},
-    {180089, 180089},
-    {184000, 192000},
-    {194101, 194101}
-}
-
-local COLOR_DATA = {
-    ["Rarity"]      = {"9D9D9D", "FFFFFF", "1EFF00", "0070DD", "A335EE", "FF8000", "E6CC80", "00CCFF"},
-    ["Class"]       = {
-        [GU_CLASS_DEATHKNIGHT]   = "C41E3A",
-        [GU_CLASS_DEMONHUNTER]   = "A330C9",
-        [GU_CLASS_DRUID]         = "FF7C0A",
-        [GU_CLASS_HUNTER]        = "AAD372",
-        [GU_CLASS_MAGE]          = "3FC6EA",
-        [GU_CLASS_MONK]          = "00FF96",
-        [GU_CLASS_PALADIN]       = "F48CBA",
-        [GU_CLASS_PRIEST]        = "FFFFFF",
-        [GU_CLASS_ROGUE]         = "FFF468",
-        [GU_CLASS_SHAMAN]        = "0070DE",
-        [GU_CLASS_WARLOCK]       = "8787ED",
-        [GU_CLASS_WARRIOR]       = "C69B6D",
-    },   
-}
-
--- TODO This list was for Classic WoW, pending review for TBC/WotLK
--- List of unused IDs which items cannot be excluded using name patterns.
-local deprecatedIDs = {
-    -- 13503, 7950, 13262, 3529, 20368, 24071, 3320, 21584, 3536, 20005, 14390, 14383, 14382, 14388, 14389, 19065, 19129,
-    -- 18951, 13843, 23072, 23162, 22230, 7948, 3542, 3538, 7951, 19971, 20502, 7949, 23058, 17108, 7953, 9443, 18303, 15141,
-    -- 15780, 18342, 18341, 3533, 3528, 16785, 17769, 17142, 13847, 13848, 13846, 13849, 6724, 6728, 6711, 6707, 6708, 6698,
-    -- 17783, 17782, 18582, 19989, 7187, 18584, 18583, 3527, 3547, 21613, 21614, 21612, 21587, 21588, 3541, 3537, 3522, 3526,
-    -- 3529, 2554, 18023, 7952, 21594, 18320, 20003, 13844, 13842, 13845, 18355, 18304, 22273, 18316, 19986, 20524, 19186, 7869,
-    -- 12585
-}
-
-function Data:GetMaxItemCount()
-    return MAX_ITEM_COUNT;
-end
-
-function Data:GetMaxItemID()
-    return MAX_ITEM_ID;
-end
+----------------------------------------------------------
 
 function Data:GetScanningStatus(locale)
     local scanDB = GU.db.global.scanDB;
@@ -194,78 +147,65 @@ end
 function Data:GetItemIDToScan()
     if (Misc:Length(self.prioScanIDList) > 0) then
         local prioID = table.remove(self.prioScanIDList);
-        return prioID, true;
+        if (self:IsValidItemID(prioID)) then
+            return prioID, nil;
+        end
+
+        Logger:Err("Data:GetItemIDToScan Invalid Item ID found: %d", prioID);
+        return nil, nil;
     end
 
     local scanDB = GU.db.global.scanDB;
-    local currentID = self:GetNextItemIDToScan(self.lastIDScanned);
+    local currentIndex = self:GetNextItemIDIndex(self.lastIndexScanned);
+    local currentItemID = self:GetItemIDAtIndex(currentIndex);
 
-    while (currentID ~= self.lastIDScanned) do
-        if (not scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] and currentID ~= 0) then
-            scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] = GU_ITEM_STATUS_PENDING;
-            return currentID, false;
+    while (currentIndex ~= self.lastIndexScanned) do
+        if (not scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] and currentItemID ~= 0) then
+            scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] = GU_ITEM_STATUS_PENDING;
+            return currentItemID, currentIndex;
         end
 
-        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_PENDING and currentID ~= 0) then
-            return currentID, false;
+        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] == GU_ITEM_STATUS_PENDING and currentItemID ~= 0) then
+            return currentItemID, currentIndex;
         end
 
-        currentID = self:GetNextItemIDToScan(currentID);
+        currentIndex = self:GetNextItemIDIndex(currentIndex);
+        currentItemID = self:GetItemIDAtIndex(currentIndex);
     end
 
-    return nil, false;
-end
-
-function Data:GetNextItemIDToScan(currentItemID)
-    -- for k, v in pairs(SCANNING_ITEM_RANGES) do
-    for i = 1, #SCANNING_ITEM_RANGES do
-        -- Before range
-        -- if (currentItemID < v[1]) then
-        if (currentItemID < SCANNING_ITEM_RANGES[i][1]) then
-            -- return v[1];
-            return SCANNING_ITEM_RANGES[i][1];
-        end
-
-        -- In range
-        if (currentItemID >= SCANNING_ITEM_RANGES[i][1] and currentItemID < SCANNING_ITEM_RANGES[i][2]) then
-        -- if (currentItemID >= v[1] and currentItemID < v[2]) then
-            return currentItemID + 1;
-        end
-
-        -- Beyond all range
-        if (currentItemID >= self:GetMaxItemID()) then
-        -- if (currentItemID >= v[2]) then
-            return 0;
-        end
-    end
-
-    Logger:Err("GetNextItemIDToScan Cannot obtain a valid ID. Current ID: %d", currentID);
-    return nil;
+    return nil, nil;
 end
 
 function Data:GetItemIDForTooltipFix()
     if (Misc:Length(self.prioTooltipIDList) > 0) then
         local prioID = table.remove(self.prioTooltipIDList);
-        return prioID, true;
+        if (self:IsValidItemID(prioID)) then
+            return prioID, nil;
+        end
+
+        Logger:Err("Data:GetItemIDForTooltipFix Invalid Item ID found: %d", prioID);
+        return nil, nil;
     end
 
     local scanDB = GU.db.global.scanDB;
-    local currentID = self:GetNextItemIDToScan(self.lastIDScanned);
+    local currentIndex = self:GetNextItemIDIndex(self.lastTooltipIndex);
+    local currentItemID = self:GetItemIDAtIndex(currentIndex);
 
-    while (currentID ~= self.lastIDScanned) do
-        if (not scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] and currentID ~= 0) then
-            scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] = GU_ITEM_STATUS_PENDING;
-            return currentID, false;
+    while (currentIndex ~= self.lastTooltipIndex) do
+        if (not scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] and currentItemID ~= 0) then
+            scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] = GU_ITEM_STATUS_PENDING;
+            return currentItemID, currentIndex;
         end
 
-        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentID] == GU_ITEM_STATUS_SCANNED and currentID ~= 0) then
-            return currentID, false;
+        if (scanDB.status[Locales:GetDatabaseLocaleKey()][currentItemID] == GU_ITEM_STATUS_SCANNED and currentItemID ~= 0) then
+            return currentItemID, currentIndex;
         end
 
-        currentID = self:GetNextItemIDToScan(currentID);
+        currentIndex = self:GetNextItemIDIndex(currentIndex);
+        currentItemID = self:GetItemIDAtIndex(currentIndex);
     end
 
-    return nil, false;
+    return nil, nil;
 end
 
 function Data:AddPrioItemToScan(itemID, itemLink)
@@ -294,56 +234,57 @@ function Data:ScanItems()
         return
     end
     
-    local scanItemID, scanPrioID = self:GetItemIDToScan();
-    local tooltipItemID, tooltipPrioID = self:GetItemIDForTooltipFix();
+    local scanItemID, scanItemIndex = self:GetItemIDToScan();
+    local tooltipItemID, tooltipItemIndex = self:GetItemIDForTooltipFix();
 
-    if (scanItemID == 1) then
-        Logger:Log("=== SCANNING STARTED FROM BEGINNING ==================")
-    end
-
-    if (scanItemID % 1000 == 0) then
-        Logger:Verb("=== SCANNING ID: %d", scanItemID);
-    end
-
-    -- for i = 1, #SCANNING_ITEM_RANGES do
-    --     Logger:Verb("%d - <%d, %d>", i, SCANNING_ITEM_RANGES[i][1], SCANNING_ITEM_RANGES[i][2]);
-    -- end
+    Logger:Verb("%d (%d),   %d (%d)", scanItemID, scanItemIndex, tooltipItemID, tooltipItemIndex);
 
     local scanSuccess, tooltipFixSuccess = false, false;
 
     if (scanItemID ~= nil) then
-        scanSuccess = self:ScanItem(scanItemID, nil, scanPrioID);
+        scanSuccess = self:ScanItem(scanItemID, nil, scanItemIndex);
+    end
+
+    self.scanningCount = self.scanningCount + 1;
+
+    if (self.scanningCount % 10000 == 0) then
+        local pending, invalid, deprecated, scanned, parsed, remaining = self:GetScanningStatus(Locales:GetDatabaseLocaleKey());
+        Logger:Verb("=== Scanned %d items. Remaining IDs to scan: %d", self.scanningCount, remaining);
+
+        if (remaining <= 0) then
+            self:SetScanEnabled(false);
+        end
     end
 
     if (tooltipItemID ~= nil) then
-        tooltipFixSuccess = self:FixItemTooltip(tooltipItemID, nil, tooltipPrioID);
+        tooltipFixSuccess = self:FixItemTooltip(tooltipItemID, nil, tooltipItemIndex);
     end
 
-    if (not scanSuccess and not tooltipFixSuccess) then
-        Logger:Log("End of scan.");
-        self:SetScanEnabled(false);
-    end    
+    -- if (not scanSuccess and not tooltipFixSuccess) then
+    --     Logger:Log("End of scan.");
+    --     self:SetScanEnabled(false);
+    -- end    
 end
 
-function Data:ScanItem(itemID, itemLink, scanPrioID)
+function Data:ScanItem(itemID, itemLink, itemIndex)
     itemID = tonumber(itemID);
     if (itemID == nil or tonumber(itemID) <= 0) then
         if (itemLink) then
             itemID = Misc:GetItemIDFromLink(itemLink);
         else
-            return;
+            return nil;
         end
     end
 
+    if (itemIndex ~= nil and itemIndex > 0) then
+        self.lastIndexScanned = itemIndex;
+    end
+
     if (itemID == nil or itemID < 0 or Data:WasScanned(itemID)) then
-        return;
+        return nil;
     end
 
     local scanDB = GU.db.global.scanDB;
-
-    if (not scanPrioID) then
-        self.lastIDScanned = itemID;
-    end
 
     local itemLinkOrID = itemID or itemLink;
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubtype, 
@@ -363,25 +304,25 @@ function Data:ScanItem(itemID, itemLink, scanPrioID)
     return true;
 end
 
-function Data:FixItemTooltip(itemID, itemLink, tooltipPrioID)
+function Data:FixItemTooltip(itemID, itemLink, tooltipItemIndex)
     itemID = tonumber(itemID);
     if (itemID == nil or tonumber(itemID) <= 0) then
         if (itemLink) then
             itemID = Misc:GetItemIDFromLink(itemLink);
         else
-            return;
+            return nil;
         end
     end
 
+    if (tooltipItemIndex ~= nil and tooltipItemIndex > 0) then
+        self.lastTooltipIndex = tooltipItemIndex;
+    end
+
     if (itemID == nil or itemID < 0) then
-        return;
+        return nil;
     end
 
     local scanDB = GU.db.global.scanDB;
-
-    if (not tooltipPrioID) then
-        self.lastIDForTooltip = itemID;
-    end
 
     if (scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] and scanDB.status[Locales:GetDatabaseLocaleKey()][itemID] == GU_ITEM_STATUS_SCANNED) then
         local scanItemsDB = scanDB.items[Locales:GetDatabaseLocaleKey()];
@@ -390,7 +331,7 @@ function Data:FixItemTooltip(itemID, itemLink, tooltipPrioID)
             Logger:Err("Data:FixItemTooltip Invalid tooltip found for item %s (%d)", scanItemsDB[itemID].name, itemID);
             return false;
         elseif (replaced) then
-            Logger:Log("Fixed item tooltip for ID: %d", itemID);            
+            Logger:LogChat(GU_CHAT_FRAME_SCAN, false, "Fixed item tooltip for ID: %d", itemID);            
         end
     end
 end
@@ -398,7 +339,7 @@ end
 -- Filters out invalid, deprecated, old or test items.
 function Data:ValidateItem(name, itemID)
     if (type(itemID) == "number") then
-        if (Misc:Contains(deprecatedIDs, itemID)) then
+        if (Misc:Contains(self:GetDeprecatedItemIDs(), itemID)) then
             Logger:Verb("%5d - %s is deprecated/invalid. Reason: invalid ID", itemID, name);
             return false;
         end
@@ -424,6 +365,11 @@ function Data:ValidateItem(name, itemID)
 
     if (strfind(lname, "monster %- ") ~= nil) then
         Logger:Verb("%5d - %s is deprecated/invalid. Reason: name contains 'monster - ' string.", itemID, name);
+        return false;
+    end
+
+    if (strfind(lname, "temp") ~= nil) then
+        Logger:Verb("%5d - %s is deprecated/invalid. Reason: name contains 'temp' string.", itemID, name);
         return false;
     end
 
@@ -482,6 +428,11 @@ function Data:ValidateItem(name, itemID)
         return false;
     end
 
+    if (strfind(lname, "peep") ~= nil) then
+        Logger:Verb("%5d - %s is deprecated/invalid. Reason: name contains 'peep' string.", itemID, name);
+        return false;
+    end
+
     if (strfind(name, "AHNQIRAJ") ~= nil or strfind(lname, "qatest") ~= nil or strfind(lname, "qaenchant") ~= nil) then
         Logger:Verb("%5d - %s is deprecated/invalid. Reason: name contains 'ahnqiraj' or 'QA' string.", itemID, name);
         return false;
@@ -501,7 +452,7 @@ end
 
 function Data:AddScannedItem(itemID, itemName, itemLink, itemRarity, itemLevel, itemMinLevel, 
         itemType, itemSubtype, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice)
-    Logger:Log("Adding item: %s", itemLink);
+    Logger:LogChat(GU_CHAT_FRAME_SCAN, false, "Adding item: %s", itemLink);
     local scanDB = GU.db.global.scanDB;
 
     self:AddItemInfo(itemID, itemName, itemLink, itemRarity, itemLevel, itemMinLevel, 
@@ -600,19 +551,58 @@ function Data:AddAllDeprecatedIDs()
     local scanDB = GU.db.global.scanDB;
     local statusDB = scanDB.status[Locales:GetDatabaseLocaleKey()];
 
-    for k,v in pairs(deprecatedIDs) do
+    for k,v in pairs(self:GetDeprecatedItemIDs()) do
         if (statusDB[v] ~= GU_ITEM_STATUS_DEPRECATED) then
             local itemName, _, _, _, _, _, _, 
-            _, _, _, _ = GetItemInfo(k);
+            _, _, _, _ = GetItemInfo(v);
             itemName = itemName or nil;
 
+            Logger:Log("Marking item ID %s as deprecated (name: %s).", v, itemName or "<invalid>");
             self:MarkItemIDAsDeprecated(v, itemName);
         end
     end
 end
 
 ----------------------------------------------------------
--- Debug purposes only
+-- Debug
+----------------------------------------------------------
+
+function Data:PrintPendingItems()
+    if (not self.printPendCount) then
+        self.printPendCount = 0;
+    end
+
+    local printPendCountLocal = self.printPendCount;
+    local count = 0;
+    local increment = 25;
+    local scanDB = GU.db.global.scanDB;
+    local foundItems = false;
+
+    Logger:Log("Printing pending items (%d - %d)", printPendCountLocal, printPendCountLocal + increment);
+
+    for k,v in pairs(scanDB.status[Locales:GetDatabaseLocaleKey()]) do
+        if (v == GU_ITEM_STATUS_PENDING) then
+            if (count >= printPendCountLocal and count < printPendCountLocal + increment) then
+                local item = scanDB.items[Locales:GetDatabaseLocaleKey()][k];
+                if (item) then
+                    Logger:Display("%5d -> %s", k, Misc:GenerateFullItemLink(k, item.rarity, item.name));
+                end
+
+                foundItems = true;
+                if (not item) then
+                    Logger:Display("%5d -> %s", k, Misc:GenerateSimpleItemLinkFromID(k));
+                end
+            end
+            count = count + 1;
+        end
+    end
+
+    if (not foundItems) then
+        self.printPendCount = 0;
+    else
+        self.printPendCount = self.printPendCount + increment;
+    end
+end
 
 function Data:PrintDeprecatedItems()
     if (not self.depCount) then
@@ -621,7 +611,7 @@ function Data:PrintDeprecatedItems()
 
     local depCountLocal = self.depCount;
     local count = 0;
-    local increment = 20;
+    local increment = 25;
     local scanDB = GU.db.global.scanDB;
     local foundItems = false;
 
@@ -654,6 +644,43 @@ function Data:PrintDeprecatedItems()
     end
 
     Logger:SetVerboseLogEnabled(verb);
+end
+
+function Data:PrintScannedItems()
+    if (not self.printScanCount) then
+        self.printScanCount = 0;
+    end
+
+    local printScanCountLocal = self.printScanCount;
+    local count = 0;
+    local increment = 25;
+    local scanDB = GU.db.global.scanDB;
+    local foundItems = false;
+
+    Logger:Log("Printing scanned items (%d - %d)", printScanCountLocal, printScanCountLocal + increment);
+
+    for k,v in pairs(scanDB.status[Locales:GetDatabaseLocaleKey()]) do
+        if (v == GU_ITEM_STATUS_SCANNED) then
+            if (count >= printScanCountLocal and count < printScanCountLocal + increment) then
+                local item = scanDB.items[Locales:GetDatabaseLocaleKey()][k];
+                if (item) then
+                    Logger:Display("%5d -> %s", k, Misc:GenerateFullItemLink(k, item.rarity, item.name));
+                end
+
+                foundItems = true;
+                if (not item) then
+                    Logger:Display("%5d - invalid", k);
+                end
+            end
+            count = count + 1;
+        end
+    end
+
+    if (not foundItems) then
+        self.printScanCount = 0;
+    else
+        self.printScanCount = self.printScanCount + increment;
+    end
 end
 
 function Data:PrintScannedItemsWithEmptyTooltip()

@@ -1,0 +1,6 @@
+**/.vs
+**/Debug
+**/build/GearUp
+
+*.exe
+*.suo

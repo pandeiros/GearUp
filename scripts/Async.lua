@@ -480,6 +480,8 @@ end)
 -----------------------------------------------------------------------
 -- #TODO Copyright here
 
+-- #TODO Check if this is used anyway
+
 local GU = _G.GU;
 
 local Async = {};

@@ -7,7 +7,7 @@ local Logger = GU.Logger;
 local Misc = GU.Misc;
 local Style = GU.Style;
 local Colors = GU.Style.Colors;
-local Async = GU.Async;
+-- local Async = GU.Async;
 local Locales = GU.Locales;
 local Frames = GU.Frames;
 

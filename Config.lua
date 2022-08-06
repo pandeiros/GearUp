@@ -2,11 +2,13 @@
 
 local GU = _G.GU;
 
+----------------------------------------------------------
+
 -- Version
-GU_ADDON_VERSION = "0.2.0"
+GU_ADDON_VERSION = "0.3.0";
 
 -- Dev mode
-GU_DEV_MODE_ENABLED = true;   -- whether dev mode is enabled or not.
+GU_DEV_MODE_ENABLED = false;   -- whether dev mode is enabled or not.
 
 -- Commonly used variables
 GU_ADDON_DISPLAY_NAME = "Gear Up!";

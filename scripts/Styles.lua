@@ -2,12 +2,18 @@
 
 local GU = _G.GU;
 local Style = GU.Style;
-local Misc = GU.Misc;
+-- local Misc = GU.Misc;
 
 local Colors = {};
 GU.Style.Colors = Colors;
 
--- Color shades (from darkest to lighest, 0 - 16)
+----------------------------------------------------------
+
+local COLOR_VANILLA = "F1A115";
+local COLOR_TBC     = "77A73C";
+local COLOR_WOTLK   = "40A6DB";
+
+-- Color shades (from darkest to lighest, 1 - 17)
 local COLOR_SHADES = {
     ["Gray"]            = {"000000", "0F0F0F", "1F1F1F", "2F2F2F", "3F3F3F", "4F4F4F", "5F5F5F", "6F6F6F", "7F7F7F", "8F8F8F", "9F9F9F", "AFAFAF", "BFBFBF", "CFCFCF", "DFDFDF", "EFEFEF", "FFFFFF"},
     ["Red"]             = {"1C0000", "380000", "550000", "710000", "8D0000", "AA0000", "C60000", "E20000", "FF0000", "FF1C1C", "FF3838", "FF5555", "FF7171", "FF8D8D", "FFAAAA", "FFC6C6", "FFE2E2"},
@@ -40,7 +46,17 @@ local COLOR_DATA = {
         [GU_CLASS_SHAMAN]        = "0070DE",
         [GU_CLASS_WARLOCK]       = "8787ED",
         [GU_CLASS_WARRIOR]       = "C69B6D",
-    },   
+    },
+    ["System"]     = {
+        ["LFG"]         = "FEC1C0",
+        ["System"]      = "FFFF00",
+        ["Guild"]       = "3CE13F",
+        ["Officer"]     = "40BC40",
+        ["Party"]       = "AAABFE",
+        ["Leader"]      = "77C8FF",
+        ["Spells"]      = "67BCFF",
+        ["Quest"]       = "CC9933",
+    }   
 }
 
 GU_COLOR_BLACK     = "000000";
@@ -67,6 +83,7 @@ local DEFAULT_STYLE = {
     backgroundColor         = COLOR_SHADES["Gray"][3],
 
     displayColor            = COLOR_SHADES["Orange"][11],
+    debugColor              = COLOR_SHADES["Azure"][14],
     verboseColor            = COLOR_SHADES["Gray"][10],
     logColor                = GU_COLOR_WHITE,
     warningColor            = GU_COLOR_YELLOW,
@@ -81,6 +98,10 @@ local OP_QUALITY_COLORS = {
     COLOR_SHADES["Green"][8], 
     COLOR_SHADES["Blue"][8],
     COLOR_SHADES["Purple"][8]
+}
+
+local SYSTEM_COLORS = {
+
 }
 
 function Style:GetDefaultStyle()
@@ -110,9 +131,41 @@ function Style:GetClassColor(class)
     return "FFFFFF";
 end
 
+function Style:GetGameVersionColor(version)
+    if (version == 0) then
+        return COLOR_VANILLA;
+    elseif (version == 1) then
+        return COLOR_TBC;
+    elseif (version == 2) then
+        return COLOR_WOTLK;
+    end
+
+    -- Invalid version number.
+    return GU_COLOR_RED;
+end
+
 ----------------------------------------------------------
 -- Color functions
 ----------------------------------------------------------
+
+-- Converts a decimal number to hexadecimal number.
+function Colors:DECToHEX(decNumber)
+	local hexNumber = "0x";
+	local hex = "";
+    while (decNumber > 0) do
+        local index = math.fmod(decNumber, 16) + 1;
+        decNumber = math.floor(decNumber / 16);
+        hex = string.sub('0123456789ABCDEF', index, index) .. hex;			
+    end
+
+    if (string.len(hex) == 0) then
+        hex = "0";
+	end
+	
+	hexNumber = hexNumber .. hex;
+
+    return hexNumber;
+end
 
 -- Adds FF at the beginning.
 function Colors:GetColor(hexColor)
@@ -131,9 +184,9 @@ function Colors:GetColorAlpha(hexColor, alphaValue)
         return "FF" .. hexColor;
     end
 
-    alphaValue = Misc:Clamp(alphaValue, 0.0, 1.0);
+    alphaValue = math.clamp(alphaValue, 0.0, 1.0);
     alphaValue = math.floor(255 * alphaValue);
-    hexValue = Misc:DECToHEX(alphaValue);
+    hexValue = Colors:DECToHEX(alphaValue);
     hexValue = hexValue:gsub("0x","");
 
     return hexValue .. hexColor;
@@ -188,6 +241,10 @@ function Colors:RGBToHEX(rgb)
 
 	return hexadecimal
 end
+
+----------------------------------------------------------
+-- Debug
+----------------------------------------------------------
 
 function Colors:GetColorTestString()
     local test = "";

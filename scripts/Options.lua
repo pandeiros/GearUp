@@ -6,6 +6,7 @@ local Frames = GU.Frames;
 local Data = GU.Data;
 local Logger = GU.Logger;
 local Misc = GU.Misc;
+local Phases = Data.Phases; -- TODO temp
 
 local Options = {};
 Data.Options = Options;
@@ -91,13 +92,32 @@ local OptionsTable = {
             get = "GetVerboseLogEnabled",
         },
 
+        debug = {
+            hidden = "GetDevModeOptionsHidden",
+            guiHidden = true,
+            type = "toggle",
+            name = "Enable/Disable Debug Log",
+            desc = "Enable/Disable very detailed development logging.",
+            set = "SetDebugLogEnabled",
+            get = "GetDebugLogEnabled",
+        },
+
         fix = {
             hidden = "GetDevModeOptionsHidden",
             guiHidden = true,
             type = "execute",
             name = "Fix Scan",
-            desc = "Fix scanned database. Available options: validate | deprecated | tooltips | depnames | ranges",
+            desc = "Fix scanned database. Available options: validate | deprecated | tooltips | depnames | invalid",
             func = "FixScan",
+        },
+
+        taskspeed = {
+            hidden = "GetDevModeOptionsHidden",
+            guiHidden = true,
+            type = "execute",
+            name = "Set Task Speed",
+            desc = "Set dynamic task speed scale. Required float argument (>= 0.0).",
+            func = "SetTaskSpeed",
         }
     },
 }
@@ -147,15 +167,19 @@ end
 -- Test
 function GU:TestCommand(info)
     -- Data:PrintAllItemLinks();
+    Data:PrintPendingItems();
     -- Data:PrintDeprecatedItems();
+    -- Data:PrintScannedItems();
     -- Data:RestoreDeprecatedItems();
     -- Data:FixDeprecatedNames();
     -- Data:AddAllDeprecatedIDs();
     -- Data:SerializeTest();
     -- print(Data:GetTooltipText(Misc:GenerateFullItemLink(21330, 4, "Conqueror's Spaulders")));
     -- Data:DeleteAllItemTooltips();
-    Data:PrintItemInfoByID(18766);
+    -- Data:PrintItemInfoByID(18766);
     -- Data:PrintScannedItemsWithEmptyTooltip();
+    -- print(Phases:GetCurrentPhase());
+    -- print(Data:IsValidItemID(1));
 end
 
 -- Scan
@@ -215,6 +239,20 @@ function GU:GetVerboseLogEnabled(info)
     return Logger:IsVerboseLogEnabled();
 end
 
+-- Debug log
+function GU:SetDebugLogEnabled(info, val)
+    if (not self:GetDevModeEnabled()) then
+        self:PrintNoAccessError("Set Debug Log Enabled");
+        return
+    end
+
+    Logger:SetDebugLogEnabled(val);
+end
+
+function GU:GetDebugLogEnabled(info)
+    return Logger:IsDebugLogEnabled();
+end
+
 -- Scan fixing
 function GU:FixScan(info)
     if (not self:GetDevModeEnabled()) then
@@ -232,12 +270,28 @@ function GU:FixScan(info)
             Data:RevalidateDeprecatedItems();
         elseif (param == "depnames") then
             Data:FixDeprecatedNames();
-        elseif (param == "ranges") then
-            Data:RemoveOutOfRangeEntries();
+        elseif (param == "invalid") then
+            Data:RemoveInvalidIDs();
         else
             Logger:Err("FixScan Invalid option given: %s", param);
         end
     else
         Logger:Err("FixScan No option given, don't know what to fix.");
     end
+end
+
+-- Dynamic taks speed scaling.
+function GU:SetTaskSpeed(info)
+    if (not self:GetDevModeEnabled()) then
+        self:PrintNoAccessError("Set Task Speed");
+        return;
+    end
+
+    local param = string.match(info.input, "taskspeed (.+)")
+    if (not param or not tonumber(param) or tonumber(param) < 0.0) then
+        Logger:Err("SetTaskSpeed Invalid task speed argument. Required value >= 0.0");
+        return;
+    end
+
+    Frames:SetDynamicTaskSpeed(tonumber(param));
 end

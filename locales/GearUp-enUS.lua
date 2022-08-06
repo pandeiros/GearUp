@@ -192,7 +192,7 @@ L["DAMAGE_TYPE_SHADOW"] = "Shadow";
 -- Equipment slots
 ----------------------------------------------------------
 
--- TODO Need to iterate through all scanned items and verify these names
+-- #TODO Need to iterate through all scanned items and verify these names
 -- based on items' equipLocations property.
 
 L["SLOT_HEAD"] = "Head";
@@ -229,7 +229,6 @@ L["PROPERTY_BOP"] = "Binds when picked up";
 L["PROPERTY_BOE"] = "Binds when equipped";
 L["PROPERTY_BOU"] = "Binds when used";
 L["PROPERTY_UNIQUE"] = "Unique";
-L["PROPERTY_UNIQUE_EQUIPPED"] = "Unique-Equipped";
 L["PROPERTY_QUEST_ITEM"] = "Quest Item";
 L["PROPERTY_QUEST_ITEM_BEGIN"] = "This Item Begins a Quest";
 L["PROPERTY_RANDOM_ENCH"] = "Random enchantment";
@@ -394,11 +393,9 @@ L["PROPERTY_BG_AV"] = "Alterac Valley";
 -- Regex
 ----------------------------------------------------------
 
--- TODO If trick with GL doesn't work in parsing, write those entries manually.
 -- NOTE: WoW Lua api does not support %g in patterns.
 
 -- Common
-L["REGEX_UNIQUE_EQUIPPED"] = "Unique%-Equipped";
 L["REGEX_UNIQUE"] = GL["PROPERTY_UNIQUE"] .. "%s?%(?(%d*)%)?";
 
 L["REGEX_LEVEL_REQUIRED"] = GL["PROPERTY_LEVEL_REQUIRED"] .. " (%d+)";
