@@ -236,6 +236,8 @@ function Data:ScanItems()
     
     local scanItemID, scanItemIndex = self:GetItemIDToScan();
     local tooltipItemID, tooltipItemIndex = self:GetItemIDForTooltipFix();
+    -- local scanItemID, scanItemIndex = 25, 1
+    --local tooltipItemID, tooltipItemIndex = 25, 1
 
     Logger:Verb("%d (%d),   %d (%d)", scanItemID, scanItemIndex, tooltipItemID, tooltipItemIndex);
 
@@ -243,6 +245,8 @@ function Data:ScanItems()
 
     if (scanItemID ~= nil) then
         scanSuccess = self:ScanItem(scanItemID, nil, scanItemIndex);
+    else
+        scanSuccess = false;
     end
 
     self.scanningCount = self.scanningCount + 1;
@@ -258,12 +262,15 @@ function Data:ScanItems()
 
     if (tooltipItemID ~= nil) then
         tooltipFixSuccess = self:FixItemTooltip(tooltipItemID, nil, tooltipItemIndex);
+    else
+        tooltipFixSuccess = false;
     end
 
-    -- if (not scanSuccess and not tooltipFixSuccess) then
-    --     Logger:Log("End of scan.");
-    --     self:SetScanEnabled(false);
-    -- end    
+
+    if (not scanSuccess and not tooltipFixSuccess) then
+        Logger:Log("End of scan.");
+        self:SetScanEnabled(false);
+    end    
 end
 
 function Data:ScanItem(itemID, itemLink, itemIndex)
@@ -280,8 +287,12 @@ function Data:ScanItem(itemID, itemLink, itemIndex)
         self.lastIndexScanned = itemIndex;
     end
 
-    if (itemID == nil or itemID < 0 or Data:WasScanned(itemID)) then
+    if (itemID == nil or itemID < 0) then
         return nil;
+    end
+
+    if (Data:WasScanned(itemID)) then
+        return true;
     end
 
     local scanDB = GU.db.global.scanDB;

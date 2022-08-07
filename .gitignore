@@ -2,5 +2,7 @@
 **/Debug
 **/build/GearUp
 
+dev/id_validation/test*
+
 *.exe
 *.suo
